@@ -100,10 +100,35 @@ agent-driven-development/
 ## Quick start (after install)
 
 1. Read [`SKILL.md`](./plugins/adsd/skills/agent-driven-development/SKILL.md) for the full methodology (~36 KB, 30 min).
-2. Read [`reference/failure-modes-catalogue.md`](./plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md) for the F1–F18 anti-patterns you'll likely hit. Don't re-derive them.
+2. Read [`reference/failure-modes-catalogue.md`](./plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md) for the F1–F21 anti-patterns you'll likely hit. Don't re-derive them.
 3. Read [`case-study/cobrust-multi-agent-experience.md`](./plugins/adsd/skills/agent-driven-development/case-study/cobrust-multi-agent-experience.md) to see ADSD applied in practice (warts and all).
 4. Copy the relevant template from [`templates/`](./plugins/adsd/skills/agent-driven-development/templates/) into your project's `docs/agent/` tree.
 5. Start writing ADRs as decisions actually happen — not speculatively.
+
+## Documentation
+
+User-facing docs are in [`docs/human/`](./docs/human/) (zh + en parallel per ADSD §3 bilingual mandate). Agent-facing meta-conventions for this repo are in [`docs/agent/`](./docs/agent/).
+
+### Bilingual user docs
+
+| Topic | 中文 | English |
+|---|---|---|
+| Getting started — 30-min onboarding | [`docs/human/zh/getting-started.md`](./docs/human/zh/getting-started.md) | [`docs/human/en/getting-started.md`](./docs/human/en/getting-started.md) |
+| Concept map — mermaid diagrams + narrative | [`docs/human/zh/concept-map.md`](./docs/human/zh/concept-map.md) | [`docs/human/en/concept-map.md`](./docs/human/en/concept-map.md) |
+
+### Agent-facing meta-conventions
+
+- [`docs/agent/conventions.md`](./docs/agent/conventions.md) — repo structure, frontmatter contracts, bilingual mandate enforcement, commit message format, identity hygiene (F21)
+
+### Doc coverage gate
+
+`scripts/doc-coverage.sh` enforces ADSD §3 bilingual mandate on this repo itself: every `docs/human/zh/*.md` MUST have a parallel `docs/human/en/*.md`. Run locally before commits:
+
+```sh
+bash scripts/doc-coverage.sh
+```
+
+The script also verifies reference files have YAML frontmatter and ADR files are zero-padded monotonic. This closes ADSD §3 mandate as F20 systemic prevention applied to ADSD itself.
 
 ## Origin
 
