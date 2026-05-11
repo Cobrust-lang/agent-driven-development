@@ -1,3 +1,13 @@
+---
+name: ADSD failure modes catalogue (F1-F21)
+description: Concrete failure modes encountered in real ADSD projects with empirical evidence, root cause analysis, recovery patterns, and prevention mechanisms. F1 Sediment Family + F2-F21 individual entries. Add F22+ as your project hits new failure modes.
+type: reference
+version: 1.2.0
+date: 2026-05-12
+status: active
+relates_to: [skill:SKILL.md §"Failure modes catalogue", case-study:cobrust-multi-agent-experience.md, reference:evals-first-development.md, reference:context-window-strategy.md, reference:cross-session-memory-architecture.md]
+---
+
 # Failure modes catalogue
 
 > Concrete failure modes encountered in real ADSD projects, with
