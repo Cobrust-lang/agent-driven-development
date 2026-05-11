@@ -56,14 +56,14 @@ If you can't or don't want to use `/plugin install`:
 ```sh
 mkdir -p ~/.claude/skills
 git clone --depth 1 https://github.com/Cobrust-lang/agent-driven-development.git /tmp/adsd-src
-cp -r /tmp/adsd-src/skills/agent-driven-development ~/.claude/skills/
+cp -r /tmp/adsd-src/plugins/agent-driven-development/skills/agent-driven-development ~/.claude/skills/
 rm -rf /tmp/adsd-src
 ```
 
 ### Read-only (no install)
 
 The methodology is plain markdown. Just read
-[`skills/agent-driven-development/SKILL.md`](./skills/agent-driven-development/SKILL.md)
+[`plugins/agent-driven-development/skills/agent-driven-development/SKILL.md`](./plugins/agent-driven-development/skills/agent-driven-development/SKILL.md)
 top-to-bottom (~36 KB, 30 min). Install matters only if you want Claude to
 invoke it automatically based on conversation context.
 
@@ -72,34 +72,37 @@ invoke it automatically based on conversation context.
 ```
 agent-driven-development/
 ├── .claude-plugin/
-│   ├── plugin.json                    # Claude Code plugin manifest
-│   └── marketplace.json               # Self-hosted single-plugin marketplace
-├── skills/
-│   └── agent-driven-development/
-│       ├── SKILL.md                   # The main methodology document (~36 KB)
-│       ├── reference/
-│       │   └── failure-modes-catalogue.md  # F1-F21 anti-patterns with empirical evidence
-│       ├── case-study/
-│       │   └── cobrust-multi-agent-experience.md  # The founding case study (N=1)
-│       └── templates/
-│           ├── adr-template.md        # Architecture Decision Record
-│           ├── finding-template.md    # Negative result / failure capture
-│           ├── dispatch-prompt-p9.md  # Tech Lead sub-agent dispatch
-│           ├── dispatch-prompt-p7.md  # Senior Engineer sub-agent dispatch
-│           ├── handoff-cover-letter.md  # Cross-session handoff
-│           └── snapshot-template.md   # Project state snapshot
+│   └── marketplace.json                       # Self-hosted single-plugin marketplace catalog
+├── plugins/
+│   └── agent-driven-development/              # Plugin root (matches marketplace.json source)
+│       ├── .claude-plugin/
+│       │   └── plugin.json                    # Plugin manifest
+│       └── skills/
+│           └── agent-driven-development/      # Skill — auto-discovered by Claude Code
+│               ├── SKILL.md                   # Main methodology document (~36 KB)
+│               ├── reference/
+│               │   └── failure-modes-catalogue.md  # F1-F21 anti-patterns with empirical evidence
+│               ├── case-study/
+│               │   └── cobrust-multi-agent-experience.md  # The founding case study (N=1)
+│               └── templates/
+│                   ├── adr-template.md        # Architecture Decision Record
+│                   ├── finding-template.md    # Negative result / failure capture
+│                   ├── dispatch-prompt-p9.md  # Tech Lead sub-agent dispatch
+│                   ├── dispatch-prompt-p7.md  # Senior Engineer sub-agent dispatch
+│                   ├── handoff-cover-letter.md  # Cross-session handoff
+│                   └── snapshot-template.md   # Project state snapshot
 ├── CONTRIBUTING.md
 ├── LICENSE-APACHE
 ├── LICENSE-MIT
-└── README.md                          # this file
+└── README.md                                  # this file
 ```
 
 ## Quick start (after install)
 
-1. Read [`SKILL.md`](./skills/agent-driven-development/SKILL.md) for the full methodology (~36 KB, 30 min).
-2. Read [`reference/failure-modes-catalogue.md`](./skills/agent-driven-development/reference/failure-modes-catalogue.md) for the F1–F18 anti-patterns you'll likely hit. Don't re-derive them.
-3. Read [`case-study/cobrust-multi-agent-experience.md`](./skills/agent-driven-development/case-study/cobrust-multi-agent-experience.md) to see ADSD applied in practice (warts and all).
-4. Copy the relevant template from [`templates/`](./skills/agent-driven-development/templates/) into your project's `docs/agent/` tree.
+1. Read [`SKILL.md`](./plugins/agent-driven-development/skills/agent-driven-development/SKILL.md) for the full methodology (~36 KB, 30 min).
+2. Read [`reference/failure-modes-catalogue.md`](./plugins/agent-driven-development/skills/agent-driven-development/reference/failure-modes-catalogue.md) for the F1–F18 anti-patterns you'll likely hit. Don't re-derive them.
+3. Read [`case-study/cobrust-multi-agent-experience.md`](./plugins/agent-driven-development/skills/agent-driven-development/case-study/cobrust-multi-agent-experience.md) to see ADSD applied in practice (warts and all).
+4. Copy the relevant template from [`templates/`](./plugins/agent-driven-development/skills/agent-driven-development/templates/) into your project's `docs/agent/` tree.
 5. Start writing ADRs as decisions actually happen — not speculatively.
 
 ## Origin
@@ -108,9 +111,9 @@ ADSD was extracted from the [Cobrust](https://github.com/Cobrust-lang/cobrust)
 project, a Rust-implemented Python successor with an AI-native compiler.
 Cobrust shipped its `0.1.0` stable tag on 2026-05-10 after a 9-week run
 with multiple parallel Claude agents (Opus 4.7 and Sonnet 4.6) coordinated
-via the methodology you'll find in [`SKILL.md`](./skills/agent-driven-development/SKILL.md).
+via the methodology you'll find in [`SKILL.md`](./plugins/agent-driven-development/skills/agent-driven-development/SKILL.md).
 
-The case study at [`case-study/cobrust-multi-agent-experience.md`](./skills/agent-driven-development/case-study/cobrust-multi-agent-experience.md)
+The case study at [`case-study/cobrust-multi-agent-experience.md`](./plugins/agent-driven-development/skills/agent-driven-development/case-study/cobrust-multi-agent-experience.md)
 documents both what worked and what broke. The failure modes catalogue
 captures lessons we'd rather not re-learn.
 
@@ -124,7 +127,7 @@ File an issue describing your project if interested.
 
 ADSD is **battle-tested but not orthodoxy**. Adapt it. If you find a
 failure mode we missed, propose F22+ via a PR to
-[`reference/failure-modes-catalogue.md`](./skills/agent-driven-development/reference/failure-modes-catalogue.md).
+[`reference/failure-modes-catalogue.md`](./plugins/agent-driven-development/skills/agent-driven-development/reference/failure-modes-catalogue.md).
 
 ## Contributing
 
