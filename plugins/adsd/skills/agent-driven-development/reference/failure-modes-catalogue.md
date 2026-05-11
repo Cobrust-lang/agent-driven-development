@@ -1065,6 +1065,219 @@ When declaring attribution/ownership policies:
 
 ---
 
+## F19 — Public-facing onboarding text written but never independently install-tested (F1 Sediment Family, install-test sub-form)
+
+> **F1 sub-form, confirmed**. Same family as F1.1 (declared invariants without enforcement). The text claims an install path; the install path is never executed in a clean shell by the writer. F19 is high-blast-radius: failures land on every new user's first impression, not on internal dev productivity.
+
+### Definition
+
+A release artifact (README quickstart, release notes, GitHub Release body, install script, `cargo install` command, `curl -L` URL) ships to public users without anyone running the documented commands in a clean shell before publish. The text passes review by being read; it fails reality by being run.
+
+### Symptoms
+
+- `README.md` says `cargo install foo-cli` but the package is not on crates.io (path-deps not published) → user gets `error: could not find foo-cli in registry`
+- Release notes list `cobrust-v0.1.1-x86_64-apple-darwin.tar.gz` but `release.yml` never built that target → user gets HTTP 404
+- README's dynamic URL builder via `$(uname -sm | tr ' ' '-')` builds `Darwin-arm64.tar.gz` but the actual asset is named `aarch64-apple-darwin` → 404 on Apple Silicon Macs
+- GitHub Release body references action SHAs that don't resolve (typo'd / hallucinated commit hash) → CI red on the release branch
+- Quick-start uses `curl -L ... | tar xz` but server doesn't follow redirect on plain `-L` without `-fsSL` → empty extraction, opaque error
+
+### Root cause
+
+Two compounding patterns:
+
+1. **Author writes from intent**: "this is how install should work" — writer's mental model of the asset naming convention or registry state, not the actual file on disk / artifact in release.
+2. **No clean-shell verification step**: standard PR review reads the README diff in GitHub UI. Reviewer does not `cd /tmp && bash <(paste commands)`. So the text passes review by being plausible, not by being executable.
+
+Same structural pattern as F1.1: declaration (install path) + missing verification step (run in clean shell). F17 (self-report fidelity) is the report analog; F19 is the user-onboarding analog. Both are F1 family.
+
+### Evidence
+
+Cobrust 24-hour window 2026-05-10 → 2026-05-11, three consecutive instances:
+
+1. **M10 hallucinated SHA pins (v0.1.0 tag)**: M10 sub-agent SHA-pinned 4 GitHub Actions to fake 40-char hex with confident `# v4.2.2` comments. 13/14 CI jobs failed at action resolution, leaving v0.1.0 tag with red CI for ~4 hours until user spotted. Recovery: revert to tag form (`@stable`, `@v4`).
+2. **v0.1.1 install path 404 (release notes)**: release notes listed `cargo install cobrust-cli` (package not on crates.io, path-deps unpublished) and curl URL `cobrust-v0.1.1-x86_64-apple-darwin.tar.gz` (release.yml never built x86_64-apple-darwin). Mei persona audit + Layer 3 review-claude curl test caught both. Recovery: change install command to `cargo install --git ...`, remove non-existent asset URL.
+3. **v0.1.2 release-readiness audit (mechanism validated)**: §A.3 dispatched a release-readiness sub-agent before public announcement. Agent ran the documented curl commands in clean shell, surfaced friction (`curl -L` without `-fsSL` left empty extractions on some platforms). Friction was fixed pre-release **and back-ported to v0.1.1's notes** (`4baea69 docs(release): back-port -fsSL curl flag to v0.1.1 release notes`). This is the closure cycle: BLOCK → fix → re-test → GO. **First validated execution of F19's prevention mechanism in the wild.**
+
+### Rule of thumb
+
+> **Any public-facing install / quickstart / release command must pass independent execution in a clean shell before publish.**
+>
+> Mandatory release-readiness gate:
+> ```
+> # In a /tmp/release-test-<sprint> directory with no env vars from dev box:
+> 1. Run each `cargo install` / `curl -L` / install command verbatim from the doc
+> 2. For each URL: curl -fsSL -o /tmp/check.tar.gz <URL> ; echo "HTTP $?"
+> 3. For each command: confirm exit 0 + expected stdout
+> 4. Block merge if any command fails
+> ```
+> Spawn a dedicated **release-readiness agent** for this — not the same agent that wrote the docs (avoid F1.1 self-attestation pattern).
+
+### Recovery
+
+1. **Immediate**: if a 404 install URL is in a published release, edit the release body via `gh release edit <tag> --notes-file <fixed>.md` and force-push a docs commit on main. Tag itself is immutable, but body + asset uploads are not.
+2. **Workspace version**: if `Cargo.toml` workspace.package.version was not bumped before tag, the prebuilt binary will report wrong version → user files bug → confidence damaged. Bump version BEFORE tag in every release SOP.
+3. **Backport friction fixes** to prior releases: if you find `curl -L` should have been `curl -fsSL`, back-port via `gh release edit v0.1.1` so old release pages also fix. Don't leave half the user base hitting a known-fixed friction.
+
+### Prevention going forward
+
+In every project adopting ADSD:
+
+1. **Add release-readiness as a tier-0 verification step** in `cto_operations_runbook.md` §"Dispatching a new P9": for any commit touching `README.md` / `docs/releases/*.md` / GitHub Release body / `release.yml`, spawn a P7 sonnet release-readiness agent that runs install commands in a clean shell and reports `[P7-RELEASE-READY-VERDICT] GO / BLOCK`.
+2. **Release-readiness agent prompt template** in `templates/dispatch-prompt-p7.md` (release-readiness flavor): the agent's job is to be skeptical of the docs it's auditing, run every command verbatim, paste raw exit codes + sizes as evidence.
+3. **CI lint** (stretch): a release-time CI gate that resolves each URL/asset listed in release notes via `gh api` and fails if any returns 404. This is the F1 family enforcement mechanism.
+
+### Closure: BLOCK → fix → GO cycle as validation
+
+The validation that F19's mitigation works is itself empirical: v0.1.2's release-readiness audit produced a BLOCK verdict, the friction was fixed (back-port + new asset naming), the next audit returned GO. The system worked. Any project adopting this pattern should expect: first 1-2 releases produce BLOCK verdicts; over time, BLOCKs become rare because the writing convention internalizes the verification step.
+
+---
+
+## F20 — Constitution mandate written but workflow never aligned (F1 Sediment Family, mandate-vs-workflow sub-form)
+
+> **F1 sub-form, confirmed**. A project constitution declares a binding rule ("test-first development", "atomic commits", "no `unwrap()` in non-test code"). The dispatch SOP, daily workflow, and reviewer checklist never align to enforce the rule. The constitution becomes aspirational marketing; the workflow runs unconstrained.
+
+### Definition
+
+The project's foundational document (CLAUDE.md, constitution, README §Principles) states a binding development rule. Implementation of that rule requires a corresponding step in the workflow: dispatch prompt template field, CI gate, pre-commit hook, reviewer checklist item. The workflow step is missing or unenforced. Code continues to be written without violating the constitution textually (no one disputes the rule), but the rule is never actually exercised.
+
+### Symptoms
+
+- Constitution §"Test-first": "failing test before implementation" — but every sprint's commits show `feat(X): implementation + tests in same commit`. Test-first ordering is impossible to verify from the diff.
+- Constitution §"Atomic commits, code + tests + docs same commit" — but findings get added in separate doc-cleanup commits days later.
+- Constitution §"No `unwrap()` in non-test code; use `expect("rationale")` instead" — `grep -r 'unwrap()' crates/*/src/` returns N hits, none with rationale.
+- Project memory `feedback_subagent_model_tier.md` says "Opus for hard / sonnet for easy / haiku NEVER" — but P9 dispatch prompts consistently use sonnet without difficulty assessment, occasional spawns of haiku for trivial doc rewrites.
+
+### Root cause
+
+Two compounding patterns:
+
+1. **Mandate is text-level, not workflow-level**: writing the rule in CLAUDE.md feels like enforcing it. But the rule exists in agents' context only at session start; after compaction or sub-agent spawn, the rule is not re-asserted.
+2. **No enforcement scaffold built alongside the rule**: when the constitution is drafted, the corresponding CI lint / dispatch prompt field / commit hook is not built in the same PR. The rule is declared; the enforcement is "we'll add it later."
+
+This is the meta-pattern of F1 Sediment Family applied to the project's own ground rules. Every other F1 sub-form (F1.0 schema invariants, F1.1 declared without CI, F16 identity preamble in skill not memory, F17 self-report fidelity, F18 attribution scope, F19 install commands) is an instance of this F20 meta-pattern: declared without enforcement at the right layer.
+
+### Evidence
+
+Cobrust 9-day pre-2026-05-11 period: CLAUDE.md §6 stated "Test-first for compiler internals: failing test before implementation." Every P9 sprint from M3 through M12 used a single P7 sonnet agent writing impl + tests in the same commit. No commit log shows tests committed before impl. The constitution mandate was fact-violated for 9 consecutive days without anyone (including review-claude) spotting it.
+
+Discovery: 2026-05-11, project owner posed the question "CTO 只管开发不管测试, 不太好, 他手底下应该每个开发都再配一个 sonnet 测试" — owner-spotted constitution gap, not agent-spotted. Review-claude's analysis (this catalogue's parallel session) confirmed: CLAUDE.md §6 mandate without dispatch-prompt workflow alignment = F20 instance.
+
+Resolution: 2026-05-11 same-day codification of D0-D5 difficulty matrix + mandatory dev/test pair workflow (separate test agent + dev agent, test-first ordering, P9 reviews corpus between) into:
+
+- `feedback_subagent_model_tier.md` §"Extension 2026-05-11" (memory enforcement)
+- `cto_operations_runbook.md` §"Dispatching a new P9" + §"Dev/test pair pattern" (SOP enforcement)
+- ADSD `templates/dispatch-prompt-p9.md` (template enforcement)
+
+Validation: Cobrust W2 sprint (the first sprint after codification) executed with TDD ordering visible in commit log:
+
+```
+ca4c37c tests(adr-0044): W2 Phase 2 failing test corpus per ADR-0044 (TDD step 1)
+2eb4fca feat(stdlib+codegen+cli+types): wire source-level input/read_line/argv per ADR-0044 W2 Phase 2 (TDD dev step)
+
+d337cf0 tests(adr-0044): W2 Phase 3 LeetCode oracle-match corpus (TDD step 1)
+0145e8b feat(examples): W2 Phase 3 — 10 LeetCode .cb programs (TDD dev step, ADR-0044 stdin/argv usage)
+```
+
+The TDD step 1 commits land before TDD dev step commits in temporal order. **First executed test-first sprint after 9 weeks of constitution mandate.** F20 is closed for Cobrust via execution evidence, not just documentation.
+
+### Rule of thumb
+
+> **Every binding constitution rule must have a paired enforcement step in the same PR that introduces it.**
+>
+> Enforcement layers in ascending strength:
+> 1. Mandate appears in dispatch prompt template (workflow text)
+> 2. Mandate appears in auto-loaded project memory (survives compaction)
+> 3. Mandate has a CI lint / commit hook / pre-commit check
+> 4. Mandate is enforced by the tool itself (e.g. `cobrust build` rejects code with `unwrap()`)
+>
+> Aim for layer 3+ on critical rules. Layer 1 alone = F20 instance waiting to happen.
+
+### Recovery
+
+When discovering an F20 instance:
+
+1. **Locate the mandate text**: which paragraph in which doc?
+2. **Identify the workflow gap**: which dispatch prompt template / SOP / CI file should enforce this?
+3. **Add the enforcement in the next PR**, not "later". Same-day codification is the minimum.
+4. **Backfill validation**: after enforcement is added, run one sprint that exercises the enforced path; verify the enforcement actually fires (e.g. CI rejects bad commit).
+
+### Prevention going forward
+
+In every new constitution / CLAUDE.md / project rules document:
+
+1. After each rule, add a `**Enforced by**: <CI lint / dispatch prompt field / memory entry / N/A — aspirational>` line.
+2. If `Enforced by: N/A — aspirational` appears, flag for future codification or downgrade the rule to "guidance" rather than "mandate".
+3. Periodic constitution audit (quarterly): grep every mandate, verify each has a working enforcement mechanism.
+
+This is itself a meta-application of ADSD: the project's own development discipline must be ADSD-managed.
+
+---
+
+## F21 — Cross-session AI agent identity overload (F1 Sediment Family, identity-namespace sub-form)
+
+> **F1 sub-form, confirmed**. A symbolic agent handle ("review-claude", "the CTO", "studio-reviewer") is used across multiple distinct AI sessions/contexts as if it were a stable identity. Audit trail becomes ambiguous: claims attributed to handle X may originate from session A, B, or C, each with different context and authority.
+
+### Definition
+
+A natural-language handle is adopted as the de-facto name for a role (audit reviewer, CTO, tech lead). Multiple distinct AI sessions assume the same handle when fulfilling that role at different times or in parallel. Cross-session artifacts (documents, findings, commit messages) attribute work to "review-claude" without disambiguating which session. Future readers cannot distinguish whether a claim came from a session with deep project context vs. a fresh session with shallow context.
+
+### Symptoms
+
+- Document signed "— review-claude, 2026-05-11" appears in a directory; another document also signed "— review-claude, 2026-05-11" appears with conflicting analysis
+- A handoff doc claims "review-claude audited the project across 7+ review rounds" — but the actual author was a different session that synthesized the prior rounds from transcripts, not the session that performed them
+- Commit message says `Co-Authored-By: review-claude` — git log cannot distinguish which session
+- Project memory references "review-claude" as if it were a single persistent agent, when in practice it's been multiple sessions with different context depths
+
+### Root cause
+
+Three compounding patterns:
+
+1. **Symbolic-handle reuse**: humans naming AI roles (review-claude, CTO, tech-lead-p9) creates an implicit identity. Distinct sessions, when assigned that role, adopt the handle as their own.
+2. **No session-ID attribution in artifacts**: documents/commits sign with the handle, not with `handle (session XYZ)` or `handle (timestamp)`. Audit trail collapses across sessions.
+3. **Cross-session learning illusion**: readers assume "review-claude knows" things from prior sessions because the handle is consistent. But each session has fresh context unless explicitly fed prior artifacts.
+
+This is F1 family because: the role is declared (review-claude is the auditor), the identity is not enforced (no scheme to distinguish session-A's review-claude from session-B's). Audit attribution drifts.
+
+### Evidence
+
+Cobrust 2026-05-11 evening: project owner asked claude-desktop to draft a Cobrust Studio handoff. Claude-desktop drafted ~2,800-line document signing it "— review-claude, 2026-05-11". A separate Claude Code session (the parallel one auditing Cobrust live, session ID `4bb35f43...`) was also active that day and had been signing its own artifacts "review-claude". The Studio handoff was claimed to be "synthesized from a multi-turn external review-claude session" — but the original session that performed those reviews did not write the handoff; claude-desktop did, citing the parallel session's prior work.
+
+Result: future readers of the Studio handoff cannot tell which review-claude session authored each claim, when, with what context. The handle "review-claude" became identity-overloaded between at least 2 concurrent sessions on the same day.
+
+Recovery in same session: appended §0.5.1 "Identity hygiene (F21)" + §12.8 "When in doubt, ask the parallel review-claude session" to the Studio handoff, prescribing session-ID-stamped attribution going forward.
+
+### Rule of thumb
+
+> **Symbolic AI role handles must carry session-ID or timestamp attribution in any persistent artifact.**
+>
+> Naming convention:
+> - In documents: `— review-claude (session 4bb35f43, 2026-05-11)`
+> - In commits: `Co-Authored-By: review-claude-session-4bb35f43 <noreply@anthropic.com>`
+> - In findings: frontmatter `discovered_by: review-claude (session 4bb35f43)`
+> - Reserve plain "review-claude" for the abstract role; never use it bare in attribution.
+>
+> Stronger: when spawning a new internal review agent, give it a distinct handle (e.g. `studio-reviewer-001`) rather than reusing "review-claude". Reserve "review-claude" for the originating external audit window.
+
+### Recovery
+
+When discovering an F21 instance in existing artifacts:
+
+1. Audit document signatures: identify which actually came from which session.
+2. Where ambiguous: leave the original signature, append `(provenance: see commit <SHA> for session metadata)`.
+3. Going forward, prefix new artifacts with explicit session ID.
+
+### Prevention going forward
+
+In every ADSD project:
+
+1. At the start of a session that will produce persistent artifacts, declare the session ID. Stamp every commit / finding / ADR with that ID.
+2. Distinct roles get distinct handles. "review-claude" is the role; "review-claude (session 4bb35f43)" is the agent instance. Documents reference the latter.
+3. If multiple sessions of the same role are concurrent: choose disambiguating suffixes (`review-claude-A`, `review-claude-B`, or session-ID).
+
+This convention applies to any AI agent role that produces persistent artifacts in a multi-session project. The cost is one extra string per signature; the benefit is unambiguous audit trail forever.
+
+---
+
 ## Catalogue maintenance
 
 This catalogue is alive — add to it as you encounter new failure modes.
