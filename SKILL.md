@@ -1,3 +1,8 @@
+---
+name: agent-driven-development
+description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks). Provides 4-tier role topology (P10 CTO / P9 tech lead / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), F1–F18 failure-modes catalogue, AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md and case-study/cobrust-multi-agent-experience.md on demand.
+---
+
 # Agent-Driven Software Development (ADSD)
 
 > A methodology for managing software projects where the bulk of the work
