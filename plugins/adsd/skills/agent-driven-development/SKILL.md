@@ -895,12 +895,26 @@ Everything else is adaptable.
 
 ## Cross-references (within this skill)
 
+### Originals (distilled from Cobrust 9-week run)
+
 - Part 1 Topology details: `reference/role-topology.md`
 - Part 2 Two-phase dispatch deep dive: `reference/two-phase-dispatch.md`
 - Part 3 Snapshot discipline: `reference/snapshot-discipline.md`
 - Part 6 Full failure-modes catalogue: `reference/failure-modes-catalogue.md`
 - Templates: `templates/*.md`
 - Cobrust case study: `case-study/cobrust-multi-agent-experience.md`
+
+### Cross-pollination from Anthropic + OpenAI public guidance (v1.2.0)
+
+These references adopt established industry practices into ADSD discipline, distilled and adapted to ADSD's sub-agent dispatch context. Read in priority order:
+
+- **Evals-first development** (`reference/evals-first-development.md`) — Anthropic's "evals are the moat" claim applied to ADSD. Every public capability gets a falsifiable test corpus before implementation. The 6th gate (eval delta non-regression) closes F20 systemically. **Highest leverage of all v1.2.0 additions.**
+- **Context-window strategy** (`reference/context-window-strategy.md`) — Positive practices for long agent sessions, complementing F16 (post-compaction identity drift). Three-tier model: persistent / session-scoped / transient. Bootstrap-from-cold prompt template.
+- **Cross-session memory architecture** (`reference/cross-session-memory-architecture.md`) — Four-layer storage model (auto-memory / project artifacts / session scratch / ephemeral) with decision tree for "where does this go?". Codifies ADSD's hard-won memory file discipline.
+- **Prompt engineering patterns** (`reference/prompt-engineering-patterns.md`) — Distilled patterns from Anthropic + OpenAI prompt guides: role priming, anti-hallucination guards, structured output, refusal/escalation conditions, ADSD-specific patterns (D-rating, identity hygiene, release-readiness guard).
+- **Cost monitoring discipline** (`reference/cost-monitoring-discipline.md`) — Practical patterns for tracking LLM cost per sprint / per release / per project. Cost as a diagnostic signal for loops + drift + scope misestimation. Anthropic prompt caching + OpenAI structured outputs as cost-reduction levers.
+
+These five represent **5 of 12 v1.2.0 gap candidates** identified by review-claude self-audit. Remaining 7 (skills architecture, agent specialization, HITL tree, RCA template, MCP patterns, calibrated confidence, structured-output enforcement) are queued for v1.3.0.
 
 ## Origin & lineage
 
