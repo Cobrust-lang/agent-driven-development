@@ -1,0 +1,21 @@
+{
+  "name": "adsd",
+  "owner": {
+    "name": "Cobrust-lang",
+    "url": "https://github.com/Cobrust-lang"
+  },
+  "metadata": {
+    "description": "Single-plugin marketplace hosting the Agent-Driven Software Development (ADSD) methodology skill.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "agent-driven-development",
+      "source": ".",
+      "description": "ADSD methodology — battle-tested patterns for multi-agent software projects (4-tier role topology, two-phase dispatch SOP, 8-dimension audit, F1-F18 failure catalogue, templates).",
+      "version": "1.0.0",
+      "category": "skills",
+      "keywords": ["methodology", "multi-agent", "adsd", "ai-driven-development"]
+    }
+  ]
+}
