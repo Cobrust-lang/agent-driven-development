@@ -1,8 +1,8 @@
 ---
-name: ADSD failure modes catalogue (F1-F28)
-description: Concrete failure modes encountered in real ADSD projects with empirical evidence, root cause analysis, recovery patterns, and prevention mechanisms. F1 Sediment Family (8 sub-forms) + F2-F28 individual entries. Cobrust N=1 surfaced F1.0-F1.2 + F2-F24; Cobrust Studio N=2 surfaced F1.3, F1.4, F25-F28. Add F29+ as your project hits new failure modes.
+name: ADSD failure modes catalogue (F1-F29)
+description: Concrete failure modes encountered in real ADSD projects with empirical evidence, root cause analysis, recovery patterns, and prevention mechanisms. F1 Sediment Family (9 sub-forms) + F2-F29 individual entries. Cobrust N=1 surfaced F1.0-F1.2 + F2-F24; Cobrust Studio N=2 (M0-M5) surfaced F1.3, F1.4, F25-F28; Cobrust Studio M6/M7 cycle surfaced F1.5 (candidate) + F29 (candidate). Add F30+ as your project hits new failure modes.
 type: reference
-version: 1.2.6
+version: 1.2.7
 date: 2026-05-12
 status: active
 relates_to: [skill:SKILL.md §"Failure modes catalogue", case-study:cobrust-multi-agent-experience.md, case-study:cobrust-studio-experience.md, reference:evals-first-development.md, reference:context-window-strategy.md, reference:cross-session-memory-architecture.md]
@@ -18,18 +18,20 @@ relates_to: [skill:SKILL.md §"Failure modes catalogue", case-study:cobrust-mult
 
 ---
 
-## F1 — Declared rules without enforcement — **"F1 Sediment Family"** (**P0 SOP gap, 8 sub-forms confirmed**)
+## F1 — Declared rules without enforcement — **"F1 Sediment Family"** (**P0 SOP gap, 9 sub-forms confirmed**)
 
 > **Status upgraded to "F1 Sediment Family" parent pattern** after 6 distinct
-> sub-forms observed across Cobrust 11-day experiment, and 2 additional
-> sub-forms (F1.3 local-vs-CI gate drift, F1.4 README-vs-release-tag drift)
-> confirmed on Cobrust Studio's 21-hour N=2 dogfood. F1 is the single most
-> common systemic failure in ADSD-flavor projects. Original 3 sub-forms
-> (F1.0 / F1.1 / F1.2) remain as implementation-level instances; F1.3 + F1.4
-> extend the family to enforcement-scaffold drift (script vs CI; script vs
-> public surface). New sub-forms F16, F17, F18 extend the family to identity,
-> self-reporting, and attribution-policy dimensions — all share the same root:
-> **declaration ≠ enforcement, and enforcement scope silently lags reality.**
+> sub-forms observed across Cobrust 11-day experiment, 2 additional sub-forms
+> (F1.3 local-vs-CI gate drift, F1.4 README-vs-release-tag drift) confirmed on
+> Cobrust Studio's 21-hour N=2 dogfood (M0-M5), and 1 additional sub-form
+> (F1.5 test-corpus structural blind spot) surfaced in Cobrust Studio M6 cycle.
+> F1 is the single most common systemic failure in ADSD-flavor projects. Original
+> 3 sub-forms (F1.0 / F1.1 / F1.2) remain as implementation-level instances;
+> F1.3 + F1.4 extend to enforcement-scaffold drift; F1.5 extends to test-corpus
+> coverage gaps on re-derive paths. New sub-forms F16, F17, F18 extend the family
+> to identity, self-reporting, and attribution-policy dimensions — all share the
+> same root: **declaration ≠ enforcement, and enforcement scope silently lags
+> reality.**
 >
 > **Family pattern one-liner**: Claim is written somewhere (constitution,
 > schema frontmatter, KPI card, attribution policy, auto-memory). No
@@ -39,7 +41,8 @@ relates_to: [skill:SKILL.md §"Failure modes catalogue", case-study:cobrust-mult
 > See F16 (identity drift), F17 (self-report fidelity gap), F18 (attribution
 > policy without dir-scope enforcement) for the three new sub-forms; F1.3
 > (local-vs-CI gate drift), F1.4 (README-vs-release-tag drift) for the two
-> Studio-surfaced scaffold-level sub-forms.
+> Studio M0-M5-surfaced scaffold-level sub-forms; F1.5 (test-corpus structural
+> blind spot on re-derive paths) for the M6-surfaced sub-form.
 
 ### F1.0 — Snapshot sediment ("重写忘删")
 
@@ -2302,6 +2305,217 @@ F27 with the F28 caveat attached.
 
 ---
 
+---
+
+## F1.5 — Test-corpus structural blind spot (re-derive path gap) [CANDIDATE] (F1 Sediment Family, coverage sub-form)
+
+> **Candidate entry — confirmed once in Cobrust Studio M6 cycle (2026-05-12).** F1
+> Sediment Family sub-form. Same root as F1.0 (declared invariants without
+> enforcement), but the enforcement mechanism (unit tests) exists and passes —
+> the gap is that the tests don't cover the *path being claimed* in the ADR, only
+> the *happy path* that bypasses the claimed path. Promote from candidate if a
+> second instance is observed in a different ADSD project.
+
+### Definition
+
+An ADR declares a wire-format or protocol invariant that involves a
+**re-construct / re-derive / re-open** path: *"packed field X enables
+re-derive"* / *"packed salt enables re-construct the key at restart"* /
+*"serialised blob enables re-validate at next login"*. The unit test corpus
+tests the happy path — `seal()` then `open()` using the same in-memory key
+object — which passes trivially. No test exercises the re-derive path: extract
+field X from blob → re-derive key from extracted X + passphrase → open blob
+with re-derived key. Bugs in the packed field's content (wrong value packed
+vs value used for derivation) are structurally invisible to the unit test
+corpus, because the happy path never exercises the extraction step.
+
+### Symptoms
+
+- ADR §"Wire format" or §"Decision" contains language like: "packed salt
+  enables re-derive at restart", "serialised token ID enables re-validate",
+  "blob header encodes the derivation parameters for session recovery"
+- Unit tests for the module pass 100% (all happy-path; no re-derive tests)
+- Integration tests pass (they exercise API-level round-trips but use the
+  same session without a drop+re-login)
+- Bug manifests in Playwright E2E or production when a real user drops their
+  session and re-enters their passphrase — the re-derive produces a different
+  key, AEAD open fails, user sees "wrong passphrase" on a correct passphrase
+- The bug is NOT findable by code review alone — the implementation looks
+  correct (it packs a salt, it derives from a salt) without tracing the
+  specific values
+
+### Root cause
+
+The test corpus was designed to verify the cryptographic operations (derive,
+seal, open, tamper-detect) in isolation. None of the tests simulate the
+sequence of operations a real user performs across a session boundary: seal
+with key K → drop K from memory → extract packed-salt from blob → re-derive
+K' from passphrase + packed-salt → open blob with K'. The test corpus is
+correct against its own test design; the test design is incomplete against the
+ADR's claimed invariant.
+
+This is a structural gap, not an oversight: the developer who wrote the tests
+wrote correct tests for the function signatures. The gap is that the ADR's
+"packed salt enables re-derive" claim implies a test pattern that the natural
+test design does not produce unless explicitly prompted by the ADR's Done-means
+criteria.
+
+### Recovery
+
+1. When ADR §"Done means" is written, scan §"Wire format" and §"Decision"
+   for any "packed X enables re-Y" language.
+2. For each such claim, add a required test that exercises the re-Y path
+   end-to-end: seal → extract X from blob output → re-Y(passphrase, X) →
+   open. This test should pass before Phase 2 is declared complete.
+3. If the bug is already shipped, the fix is to correct the packed value
+   (ensure packed value = value used for derivation, not a newly-generated
+   value) and add the re-derive test.
+
+### Evidence
+
+Cobrust Studio M6 (2026-05-12): `SessionKey::seal()` generated a fresh random
+salt on each call and packed it into the blob header, but `SessionKey` was
+derived from a different salt at login time. The 6 unit tests in ADR-0007's
+Done-means tested seal+open on the same key — none tested re-derive from blob.
+Playwright login-aead.spec.ts test 2 (restart + re-login) caught the bug the
+same day as v0.2.0. Fixed at commit `3753a2b` (`SessionKey` now carries its
+`derive_salt`; `seal()` packs `self.salt`). New test
+`seal_then_re_derive_then_open_round_trips` locks the contract.
+
+Case study: `cobrust-studio-experience.md §11.3`.
+
+### Prevention going forward
+
+When writing ADR §"Done means" for any module with a wire format:
+
+1. Scan §"Wire format" for "packed X enables re-Y" clauses
+2. For each such clause, add a required Done-means test of the form:
+   ```
+   <module>_packed_<X>_enables_re_<Y>:
+     derive key K from (passphrase, fresh-salt)
+     sealed = K.seal(payload)
+     extracted_X = sealed[..len(X)]
+     K2 = re_derive(passphrase, extracted_X)
+     assert K2.open(sealed) == payload
+   ```
+3. This test class is orthogonal to tamper-detection tests (which also
+   flip bits in X but don't re-derive from the flipped X) and to happy-path
+   seal-open tests. All three are necessary; none is sufficient.
+
+The general principle: **any ADR claim that references "packed field enables
+reconstruct" implies a test that exercises the reconstruction path, not just
+the forward path**. If the Done-means criteria don't name this test explicitly,
+the claim is declared but not enforced — F1 Sediment Family.
+
+---
+
+## F29 — Cross-platform runner-pool dependency as a release-infra failure mode [CANDIDATE]
+
+> **Candidate entry — confirmed twice in Cobrust Studio (v0.1.3 and v0.2.0,
+> both 2026-05-12) and closed at v0.2.1.** Distinct from F1.0 (code/doc
+> invariants without enforcement) because the failure is not in code or
+> documentation but in the infrastructure layer that executes the release.
+> Promote from candidate if a second instance is observed in a different
+> ADSD project.
+
+### Definition
+
+A release workflow declares N build targets (platforms, architectures,
+OS variants) via a CI matrix. The workflow code is correct. One or more
+targets depend on a **GitHub-hosted runner pool** (or equivalent
+infrastructure service) with insufficient queue depth, unpredictable
+availability, or a specific runner generation that has been deprioritised
+in the provider's scheduling. Multiple consecutive releases ship N-1 (or
+fewer) successful artifacts for the affected targets, despite no code
+changes between attempts.
+
+### Symptoms
+
+- `cargo build --target=X` succeeds locally on the developer's machine
+- CI build for the same `--target=X` completes 0/N or times out when using
+  runner label `old-generation` (e.g. `macos-13` Intel)
+- The release workflow shows the target job as "queued" for 30+ minutes
+  before eventually timing out or completing with a stale artifact
+- The pattern recurs across multiple release tags (same missing target,
+  same runner label)
+- No code change produces a fix; only a runner label change resolves it
+
+### Root cause
+
+GitHub-hosted runner pools for older or less-popular runner generations
+(`ubuntu-20.04`, `macos-13`, `windows-2019`) have smaller pool sizes than
+current-generation runners. During peak CI periods or for projects with
+infrequent cache warming, the queue wait time can exceed job timeouts.
+The release workflow is correct; the infrastructure serving it is the
+bottleneck.
+
+For macOS specifically: GitHub maintains separate pools for Intel
+(`macos-13`) and Apple Silicon (`macos-14`/`macos-15`). Apple Silicon runners
+are currently more abundant and have shorter queue times. Rust supports
+cross-compilation from Apple Silicon → Intel via
+`--target=x86_64-apple-darwin` natively, making the pool substitution
+transparent to the build output.
+
+### Recovery
+
+1. Identify the stalling target (check CI logs for long queue times vs
+   build times).
+2. Check if the runner can be substituted with a higher-availability
+   alternative while keeping the `--target` flag unchanged (e.g.
+   `macos-13` → `macos-14 --target=x86_64-apple-darwin`).
+3. Verify that the language's toolchain supports the cross-compile path
+   (Rust: yes for Apple Silicon → Intel via LLVM; Go: yes; Python: depends
+   on C extensions).
+4. Patch release.yml with the new runner label. Ship as a patch tag with
+   no code changes (infrastructure-only patch is acceptable; see §11.4 of
+   `cobrust-studio-experience.md`).
+5. Validate by observing the next release: if all N targets ship first-time
+   green, the runner pool was the root cause.
+
+### Evidence
+
+Cobrust Studio:
+- v0.1.3 (2026-05-12): `x86_64-apple-darwin` build job stalled on
+  `macos-13` runner; release shipped 4/5 platform tarballs.
+- v0.2.0 (2026-05-12): same pattern; 4/5 tarballs.
+- Sarah v3 audit predicted: "if this stalls again, consider whether the
+  cross-compile setup needs to change."
+- v0.2.1 (2026-05-12): `.github/workflows/release.yml` patched to
+  `runner: macos-14` (with existing `--target=x86_64-apple-darwin` flag).
+  **All 5 platforms green first-time.** Runner pool was confirmed root cause.
+
+Case study: `cobrust-studio-experience.md §11.4`.
+
+### Prevention going forward
+
+When writing a multi-platform release workflow for the first time:
+
+1. Check the GitHub Actions runner availability documentation for each
+   runner label in the matrix. Note which generations are "current" vs
+   "legacy."
+2. For any target that uses a legacy runner generation, prefer cross-compilation
+   from a current-generation runner if the toolchain supports it.
+3. Add a comment in release.yml citing the runner substitution rationale:
+   ```yaml
+   # macos-14 used instead of macos-13 to avoid Intel runner pool
+   # queue stalls. --target=x86_64-apple-darwin provides cross-compile.
+   # See cobrust-studio v0.2.1 / ADSD F29.
+   runner: macos-14
+   ```
+4. The "no CODE tag→patch dance" rule applies: infrastructure-only patches
+   between release tags are acceptable when the audit predicted the failure
+   mode. CHANGELOG the change explicitly as "infrastructure patch, no code
+   changes."
+
+**ADSD §4 ("tag → audit → patch") extends to the infrastructure layer.**
+A release-infra failure mode (runner pool stall, action version deprecation,
+Docker image removal) is a legitimate release regression that warrants its
+own patch tag with honest CHANGELOG. It is NOT a code quality failure; it
+DOES count against the release readiness gate if it blocks one or more
+declared targets from shipping.
+
+---
+
 ## Catalogue maintenance
 
 This catalogue is alive — add to it as you encounter new failure modes.
@@ -2312,8 +2526,8 @@ When adding:
 3. Evidence section MUST cite a specific case-study artifact (not
    "I think we hit this once")
 4. Submit via PR; reviewer should verify the failure mode is
-   distinct from existing F1-F28 (and from existing F1 Sediment
-   Family sub-forms F1.0-F1.4, F16, F17, F18, F19, F20, F21)
+   distinct from existing F1-F29 (and from existing F1 Sediment
+   Family sub-forms F1.0-F1.5, F16, F17, F18, F19, F20, F21)
 
 If a failure mode becomes obsolete (e.g. tool now prevents it
 automatically), don't delete — mark as "superseded by <SOP>" and link.
