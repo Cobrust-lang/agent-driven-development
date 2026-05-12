@@ -1,11 +1,11 @@
 ---
-name: ADSD failure modes catalogue (F1-F21)
-description: Concrete failure modes encountered in real ADSD projects with empirical evidence, root cause analysis, recovery patterns, and prevention mechanisms. F1 Sediment Family + F2-F21 individual entries. Add F22+ as your project hits new failure modes.
+name: ADSD failure modes catalogue (F1-F28)
+description: Concrete failure modes encountered in real ADSD projects with empirical evidence, root cause analysis, recovery patterns, and prevention mechanisms. F1 Sediment Family (8 sub-forms) + F2-F28 individual entries. Cobrust N=1 surfaced F1.0-F1.2 + F2-F24; Cobrust Studio N=2 surfaced F1.3, F1.4, F25-F28. Add F29+ as your project hits new failure modes.
 type: reference
-version: 1.2.0
+version: 1.2.6
 date: 2026-05-12
 status: active
-relates_to: [skill:SKILL.md §"Failure modes catalogue", case-study:cobrust-multi-agent-experience.md, reference:evals-first-development.md, reference:context-window-strategy.md, reference:cross-session-memory-architecture.md]
+relates_to: [skill:SKILL.md §"Failure modes catalogue", case-study:cobrust-multi-agent-experience.md, case-study:cobrust-studio-experience.md, reference:evals-first-development.md, reference:context-window-strategy.md, reference:cross-session-memory-architecture.md]
 ---
 
 # Failure modes catalogue
@@ -18,15 +18,18 @@ relates_to: [skill:SKILL.md §"Failure modes catalogue", case-study:cobrust-mult
 
 ---
 
-## F1 — Declared rules without enforcement — **"F1 Sediment Family"** (**P0 SOP gap, 6 sub-forms confirmed**)
+## F1 — Declared rules without enforcement — **"F1 Sediment Family"** (**P0 SOP gap, 8 sub-forms confirmed**)
 
 > **Status upgraded to "F1 Sediment Family" parent pattern** after 6 distinct
-> sub-forms observed across Cobrust 11-day experiment. F1 is the single most
+> sub-forms observed across Cobrust 11-day experiment, and 2 additional
+> sub-forms (F1.3 local-vs-CI gate drift, F1.4 README-vs-release-tag drift)
+> confirmed on Cobrust Studio's 21-hour N=2 dogfood. F1 is the single most
 > common systemic failure in ADSD-flavor projects. Original 3 sub-forms
-> (F1.0 / F1.1 / F1.2) remain as implementation-level instances. New
-> sub-forms F16, F17, F18 extend the family to identity, self-reporting, and
-> attribution-policy dimensions — all share the same root: **declaration ≠
-> enforcement, and enforcement scope silently lags reality.**
+> (F1.0 / F1.1 / F1.2) remain as implementation-level instances; F1.3 + F1.4
+> extend the family to enforcement-scaffold drift (script vs CI; script vs
+> public surface). New sub-forms F16, F17, F18 extend the family to identity,
+> self-reporting, and attribution-policy dimensions — all share the same root:
+> **declaration ≠ enforcement, and enforcement scope silently lags reality.**
 >
 > **Family pattern one-liner**: Claim is written somewhere (constitution,
 > schema frontmatter, KPI card, attribution policy, auto-memory). No
@@ -34,7 +37,9 @@ relates_to: [skill:SKILL.md §"Failure modes catalogue", case-study:cobrust-mult
 > turns. Violation is invisible until an auditor manually checks.
 >
 > See F16 (identity drift), F17 (self-report fidelity gap), F18 (attribution
-> policy without dir-scope enforcement) for the three new sub-forms.
+> policy without dir-scope enforcement) for the three new sub-forms; F1.3
+> (local-vs-CI gate drift), F1.4 (README-vs-release-tag drift) for the two
+> Studio-surfaced scaffold-level sub-forms.
 
 ### F1.0 — Snapshot sediment ("重写忘删")
 
@@ -132,6 +137,121 @@ specific milestone range and went stale.)
 `ls docs/agent/adr/00*.md` patterns, not hardcode milestone lists.
 Same applies to any "rule covers M0-M<N>" pattern — it will go stale
 the moment M<N+1> lands.
+
+### F1.3 — Local-vs-CI gate definition drift (sub-form of F1.2)
+
+**Symptoms**: a project enforces "N gates green before merge" at two
+layers — `scripts/doc-coverage.sh` (developer-local fast feedback) and
+the GitHub Actions workflow (canonical merge gate). The mandate is
+nominally identical at both layers, but the two layers define the
+gate-set differently. Local script reports "all 6 gates passed"; CI
+fails the PR on a 7th gate the local script never ran. The developer
+sees a green local run + a red CI run and cannot reconcile them
+without reading both scripts side-by-side.
+
+**Concrete shapes seen**:
+- Local `doc-coverage.sh` runs fmt/clippy/build/test + 2 doc-shape
+  checks (6 steps). CI workflow runs the same 6 + a separate
+  `cargo fmt --check` job (7 jobs). Local passes; CI fails on fmt
+  drift because the local script never ran fmt-check.
+- Local script runs `cargo test --workspace`; CI runs `cargo test
+  --workspace --all-features`. Feature-gated test fails only in CI.
+- Local script uses one cargo binary; CI uses pinned toolchain
+  version. Toolchain-specific lint fails only in CI.
+
+**Root cause**: structurally identical to F1.2 (constitution rules
+with partial-scope enforcement), but applied to the enforcement
+*scaffold itself*. The "N gates" rule is declared in the project
+constitution; the enforcement layer has two implementations (local
+script + CI workflow), and their definitions of "N" diverge silently.
+Without a meta-check that script-set ⊆ CI-set, drift is invisible
+until the next CI red.
+
+**Evidence**: Cobrust Studio M5.8 sprint, 2026-05-12. Persona auditor
+Sarah v2 caught the gap: local `scripts/doc-coverage.sh` reported "6
+gates passed"; the GitHub Actions matrix-CI workflow added at M5 (per
+Sarah v1 dispatch) ran `cargo fmt --check` as a separate job and
+failed on the same SHA the local script approved. Resolution: §5b
+added to `doc-coverage.sh` to run `cargo fmt --check` alongside the
+existing gates, restoring script ⊇ CI invariant. See Studio case
+study §4.2 and persona-driven §M5.8.
+
+**Recovery**:
+1. Establish the invariant **script ⊇ CI** (the local script runs at
+   least every check the CI workflow runs).
+2. Add a meta-check: a small CI job that fails if any check in
+   `workflows/*.yml` lacks a corresponding step in `doc-coverage.sh`
+   (grep-driven; brittle but bounds the drift).
+3. When CI fails on a gate the local script didn't run, the fix is
+   to extend the local script in the same PR, not to silently rely
+   on CI catching it.
+
+**Prevention going forward**: in the SAME PR that introduces a new
+CI job, extend the local enforcement script to run it. The "N gates"
+mandate must name a single source of truth (the local script) and
+treat CI as the canonical re-runner of that script — not as a parallel
+gate-set. See F26 (recursive enforcement-script closure) for the
+multi-layer-review discipline this implies.
+
+### F1.4 — Doc-coverage script enforces what it knows, README-vs-release-tag drifts silently (sub-form of F1.0)
+
+**Symptoms**: a project's `scripts/doc-coverage.sh` enforces invariants
+on artifacts it knows about — module-doc `last_verified_commit:` SHA
+reachability, ADR roster completeness, findings frontmatter shape. The
+script is rigorous on its declared scope. Meanwhile, the public README
+ships claims that **the script has no clause for**:
+- README badge shows version `vX.Y.Z` while the latest pushed tag is
+  `vX.Y.(Z+1)` (badge-vs-tag drift)
+- README §"Install" describes a single-platform tarball while
+  `release.yml` builds a 5-platform matrix (asset-coverage drift)
+- README §"Compare to X" cites old positioning while the current
+  positioning was updated 3 commits ago (narrative drift)
+
+The script is green; the public surface is stale. Discovery happens
+only when a persona auditor or new visitor reads the README cold.
+
+**Root cause**: F1.0 family — the script enforces what it knows to
+enforce. Its declared scope (module-doc / ADR / finding) is rigorous;
+its undeclared scope (README ↔ latest tag, README ↔ release.yml
+matrix, README ↔ current positioning) is unenforced. The script
+doesn't know to enforce these; nobody told it to.
+
+**Evidence**: Cobrust Studio post-v0.1.3 sprint, persona auditor Sarah
+v2 R9 finding (2026-05-12). README §"Releases" badge displayed
+`v0.1.2` and §"Install" described a single-platform `aarch64-apple-darwin`
+tarball, AFTER v0.1.3 had shipped with a 5-platform `release.yml`
+matrix (Linux + macOS x86_64/aarch64 + Windows). `doc-coverage.sh`
+green; `last_verified_commit:` rigorous on every module-doc; README
+content not under any gate. See Studio case study §M5.8 and Sarah-v2
+R9.
+
+**Rule of thumb**:
+
+> **What the doc-coverage script doesn't enforce, drifts. The script
+> enforces what it knows to enforce. Anything outside its declared
+> scope is on human discipline alone — i.e., it will drift.**
+
+**Recovery**:
+1. For every public-facing artifact (README, release notes, landing
+   page), enumerate the claims that are bound to a current-tag value
+   (badge SHA, asset names, platform matrix, version string).
+2. Add a `scripts/doc-coverage.sh` clause per claim:
+   - Badge SHA must equal `git describe --tags --abbrev=0`
+   - Every asset URL in README must resolve via `gh api`
+   - Every platform mentioned in README must appear in
+     `.github/workflows/release.yml` matrix
+3. Mark previously-aspirational claims (e.g. "single-platform tarball"
+   wording) as ASPIRATIONAL per F1's generalized prevention rule, or
+   add the enforcement.
+
+**Prevention going forward**: when introducing a new public-facing
+claim (README §"Install", release notes), in the same commit add the
+script clause that enforces the claim. F1 family applied to public
+surface, not just internal scaffolding. Composes with F19
+(release-readiness independent install-test) and F8 (marketing
+overreach without citation): F19 verifies the install path runs; F8
+verifies marketing claims have citations; F1.4 verifies README claims
+track current tag.
 
 ### Generalized prevention going forward (P0 SOP)
 
@@ -1587,6 +1707,601 @@ This pattern composes with F19 (install-not-tested): both reflect a gap between 
 
 ---
 
+## F25 — Tag → audit → patch as a release pattern under AI velocity (discipline, not failure)
+
+> **Discipline entry, not a defect pattern**. F25 is the empirically validated
+> *legitimate-and-disciplined* form of what would otherwise read as "shipping
+> broken tags". The pattern only becomes anti-pattern when its three preconditions
+> (honest CHANGELOG, audit-as-experiment, K-bound convergence) are violated —
+> see §"When F25 degrades into anti-pattern" below. Catalogued here because under
+> AI velocity (~2.5×-10×) the first tag will not be the publishable one, and the
+> right discipline is to *plan for K patch tags* rather than aim for shippable-on-first-try.
+
+### Definition
+
+Under AI-velocity acceleration, a project ships its first tag with the
+expectation that the **first release-readiness audit will reveal an enforcement
+gap that intent-driven self-checks missed**. The pattern is:
+
+```
+Tag v0.1.<N>                                  ← experiment substrate
+    ↓
+Release-readiness audit in clean shell         ← observation
+    ↓ (BLOCK)
+Finding filed + patch + tag v0.1.<N+1>        ← learning
+    ↓
+Re-audit
+    ↓ (GO)
+Announce, publish notes
+```
+
+Each tag is the experiment; each audit is the observation; each patch is
+the learning. The pattern's success metric is **bounded convergence after K
+patches**, not "first tag is perfect". For Cobrust Studio: K=2 (v0.1.0 broken
+→ v0.1.1 broken → v0.1.2 usable, in 6 hours wall-clock).
+
+### Symptoms (legitimate form)
+
+- Multiple consecutive patch-tags in a single calendar day (v0.1.0 → v0.1.1
+  → v0.1.2 in 6 hours)
+- Each tag has its own CHANGELOG entry naming the gap explicitly
+  ("v0.1.1 stale Cargo.lock; cargo build --locked exit 101")
+- Each tag has a corresponding finding under `docs/agent/findings/` filed
+  before the next patch
+- README §"Honest status" or equivalent names the patch dance up front
+  for users
+- Total K is bounded (typically 2–3); convergence is not "endless patch
+  spiral"
+
+### When F25 degrades into anti-pattern
+
+F25 becomes a defect pattern (and should be filed as a separate finding)
+when any of the following hold:
+
+1. **No honest CHANGELOG**: subsequent tag silently overwrites prior
+   without naming the broken state. Users cannot distinguish which tags
+   to skip. *Recovery*: amend CHANGELOG at the next patch; never delete
+   the prior tag's broken state.
+2. **Audit-as-ceremony, not audit-as-experiment**: the release-readiness
+   audit is rubber-stamping rather than truly running install commands
+   in a clean shell. Same F19 (release-readiness untested) instance,
+   wearing a release-pattern costume.
+3. **K unbounded**: more than ~3 patch tags without convergence suggests
+   the project is missing a structural fix (the F20/F26 enforcement
+   layer the patches are nominally closing). *Recovery*: stop tagging;
+   land the enforcement-script fix; re-tag once.
+
+### Root cause
+
+AI-velocity acceleration buys experimental cycles, not shippable-first-try.
+Under a 5-day human plan compressed to 2 days, the writer's mental model of
+"what will install correctly" diverges from the actual artifact more than
+under a 5-day human cadence. The release-readiness audit (F19's prevention
+mechanism) catches the divergence; the patch closes it. The pattern is
+*the right discipline* for AI velocity — but only with the three preconditions
+above honored.
+
+### Evidence
+
+Cobrust Studio 2026-05-12, three consecutive tags in 6 hours wall-clock
+(case study §3.4, §3.5, §4.1):
+
+1. **v0.1.0** (commit `a722e09`, tag `0a7fd3e`): SPA fallback regression
+   (`Path<String>` on `Router::fallback`) shipped. Post-tag CTO 守闸
+   release-readiness audit ran hermetic Playwright against
+   `./target/release/cobrust-studio` built from main HEAD; 13/14 e2e specs
+   failed. Finding `m4-release-readiness-spa-fallback-extractor.md` filed
+   P0.
+2. **v0.1.1** (commit `15b6f46`): SPA fallback fixed via `Uri` extractor.
+   Stale Cargo.lock shipped; `cargo build --workspace --locked` exit 101.
+   `release-tarball.sh` errored; CHANGELOG names the gap.
+3. **v0.1.2** (commit `7ea9ae3`): Cargo.lock regenerated + `doc-coverage.sh`
+   §6 hardened with paired exit-code + FAILED-grep gate. Release-readiness
+   audit returned GO. First usable tag.
+
+CHANGELOG names each broken tag explicitly; README §"Honest status" names
+the patch dance up front. All three preconditions honored. K=2 (within
+the bounded convergence claim).
+
+### Rule of thumb
+
+> **Under AI velocity, plan for K=2 patch tags before first usable. The
+> right discipline is fast experimental cycle: tag, audit in clean shell,
+> patch the gap, re-tag.**
+>
+> Hard preconditions for the pattern to remain legitimate-and-disciplined:
+>
+> 1. **Honest CHANGELOG**: each broken tag named with its gap; no quiet
+>    retag.
+> 2. **Audit-as-experiment**: the release-readiness audit must actually
+>    run commands in a clean shell, not read the README.
+> 3. **K-bound convergence**: K ≤ 3 typical. If K > 3, the underlying
+>    enforcement-script layer is missing — stop tagging, fix the
+>    enforcement, re-tag once.
+
+### Recovery
+
+When F25 is firing (legitimate use):
+
+1. After each patch tag, file a finding naming the gap as an instance
+   of F19/F20/F26 (which enforcement layer was missing).
+2. Update `scripts/doc-coverage.sh` or equivalent enforcement script
+   in the same PR as the patch, closing the gap structurally — not
+   just fixing the symptom.
+3. Verify convergence: each subsequent patch should close a *different*
+   gap. Two consecutive patches closing the same gap = K-bound violated,
+   stop tagging.
+
+When F25 has degraded into anti-pattern (quiet retag / endless spiral):
+
+1. Audit CHANGELOG: name every prior broken state retroactively.
+2. Locate the missing enforcement layer (the F20 instance the patches
+   are nominally closing); land it; re-tag once.
+3. Communicate to users: "we shipped K tags rapidly; here is what
+   each one fixed; here is the structural fix we landed at v0.1.<K+1>".
+
+### Prevention going forward
+
+Adopt F25 as an explicit release pattern in `cto_operations_runbook.md`
+§"Tagging policy" for any AI-velocity project:
+
+- Plan for K=2 patch tags in the release window.
+- Spawn the release-readiness agent (F19) on **every** tag push, not
+  just the planned "final" one.
+- CHANGELOG template includes a §"This tag is known-broken; upgrade to
+  v0.1.<N+1>" section for any tag the audit returned BLOCK on.
+- README §"Honest status" names the current usable tag, not the latest
+  tag — users can find both with `git tag --sort=-creatordate`.
+
+This composes with F19 (release-readiness untested — F25's audit step
+*is* an F19 prevention exercise) and F20 (constitution-vs-workflow
+alignment — each patch is an F20 closure landed in the same PR as the
+fix).
+
+---
+
+## F26 — Recursive enforcement-script closure required (F1 Sediment Family, orthogonal-failure sub-form)
+
+> **F1 sub-form, confirmed**. Direct refinement of F20 (constitution-vs-workflow
+> alignment). F20 closure is not one-shot; every enforcement layer needs its
+> own paired review against orthogonal failure modes on the same code path.
+> A doc-coverage gate hardened against pattern X can ship green against pattern
+> Y on the same operation. Studio's `doc-coverage.sh` §6 evolution is the
+> empirical substrate: two patches before the §6 gate stopped letting things
+> through.
+
+### Definition
+
+An enforcement script (CI lint, doc-coverage gate, pre-commit hook) is
+written or hardened to catch failure mode X on operation Op. The script
+appears correct against X. The script ships green against failure mode Y
+on the same operation Op — Y being a different shape of the same underlying
+contract violation that X manifests. Each enforcement layer needs its own
+paired orthogonal-failure review until the failure-mode class no longer
+recurs.
+
+### Symptoms
+
+- An F20 closure (script hardened against bug pattern X) ships green
+  against bug pattern Y the same week
+- The script's invariant is declared once ("no test failures shipped") but
+  the operation has multiple orthogonal failure shapes (FAILED summary line
+  emitted vs exit code only vs hang vs panic vs OOM)
+- "Two strikes" pattern: same script, same invariant, two consecutive
+  bypasses through different failure modes
+- Auditor's review of the script reads correct against the failure mode
+  that motivated the script's creation, but doesn't scan for orthogonal
+  failure modes on the same code path
+
+### Root cause
+
+Enforcement-script authors close the failure mode that triggered the script.
+They do not scan the same operation for other failure modes that would
+bypass the new check. The script's coverage is local to the bug; the
+contract's coverage is global to the operation. Closing X without checking
+Y leaves the layer half-closed.
+
+This is structurally a recursive application of F20 (constitution-vs-workflow:
+mandate vs workflow has a gap). F26 is F20 applied to the workflow itself
+— the enforcement layer is a workflow, the workflow has a gap, the gap
+becomes a new finding, the new closure may itself have a gap.
+
+### Evidence
+
+Cobrust Studio `doc-coverage.sh` §6 evolution (2026-05-12; case study §3.5
+and §4.2):
+
+| Stage | Enforcement | Gap revealed | Closure tag |
+|---|---|---|---|
+| Pre-M4.1 | `grep '^test result' \| wc -l` | Counts both `ok` and `FAILED` as "result" lines; 9 failing tests shipped as "22 test groups all green" | A4 merge `8d5475f` shipped 9 failing integration tests under green-gate |
+| M4.1 | `grep -c '^test result: FAILED'` | Misses non-zero exit without summary line (e.g. `cargo build --locked` exit 101 from lockfile mismatch) | v0.1.1 tag `15b6f46` shipped broken |
+| v0.1.2 | Paired: `if ! cargo test ...` AND FAILED-grep | Both classes now caught | v0.1.2 tag `7ea9ae3` first usable |
+
+Each fix was complete against the bug class it was designed for. But the
+enforcement layer had orthogonal failure modes (FAILED-line emit-ing vs
+not-emit-ing on `cargo test --locked`) that needed their own paired review.
+
+A second F26 instance landed in M5.8: `doc-coverage.sh` §5b added `cargo
+fmt --check` after Sarah-persona v2 caught local "6 gates passed" while
+CI's separate `cargo fmt --check` job failed on the same SHA — the §5b
+gate was missing because the §6 gate's authoring scope was "test-failure
+shape", not "any orthogonal pre-merge check the project also runs in CI".
+Same F26 pattern, different orthogonal failure axis.
+
+### Rule of thumb
+
+> **When closing an F20 instance, scan for orthogonal failure modes on the
+> same code path BEFORE declaring the closure complete.**
+>
+> Ask explicitly: "could my enforcement layer still pass under a different
+> failure shape of the same operation?" If yes, the closure is partial.
+>
+> Common orthogonal axes to enumerate per operation:
+>
+> | Operation | Orthogonal failure axes |
+> |---|---|
+> | `cargo test --locked` | exit code ≠ 0 / FAILED summary line / hang / panic / OOM / lockfile mismatch / build error |
+> | Frontmatter SHA check | absent / placeholder string ("HEAD") / wrong hex shape / hex-shaped but unreachable / wrong-branch SHA |
+> | README install command | URL 404 / URL redirect needs -fsSL / asset name typo / wrong-arch asset / missing dependency |
+> | CI matrix job | platform missing / runner image deprecated / cache miss balloons time / artifact upload silently truncated |
+
+### Recovery
+
+When F26 fires (a closure shipped, then a sibling failure bypassed it):
+
+1. **Add the paired check to the same script in the same PR**. Don't
+   wait for the next sprint.
+2. **Enumerate orthogonal failure axes for the operation** (use the table
+   above as starting point; extend per project).
+3. **Add a "deliberately-broken-input test" in CI**: feed the enforcement
+   script a fixture for each orthogonal failure mode; assert exit ≠ 0.
+   This is the F20 §"Rule of thumb" layer-3 enforcement applied to F26.
+4. **Document the closure as a finding**: `<script>-orthogonal-<mode>-closure.md`
+   naming the prior closure that missed the orthogonal mode.
+
+### Prevention going forward
+
+In every project's enforcement-script authoring SOP:
+
+1. **Script-level review checklist**: every new check has a §"Orthogonal
+   failure modes considered" comment block enumerating the operation's
+   failure axes and which the check covers vs which it explicitly delegates
+   to other checks.
+2. **Layered review discipline**: F20 closure dispatches must include a
+   `[P7-ORTHOGONAL-SCAN]` step before declaring closure — scan the script
+   against the orthogonal-axes table for the operation it gates.
+3. **Layer 4 enforcement** (the F20 §"Prevention going forward" layer-4
+   extension Studio surfaced): "orthogonal-failure review against every
+   paired-gate enforcement" is a first-class layer in the enforcement
+   stack.
+
+F26 generalizes beyond test gates. Same logic applies to schema invariants
+in frontmatter (different shape of violation), CI lint scripts (different
+shape of bad input), and dispatch-prompt template fields (different shape
+of agent shortcut). Anywhere a workflow is itself an enforcement layer,
+F26 applies.
+
+---
+
+## F27 — Continuous persona testing as dev-loop primitive (discipline, not failure)
+
+> **Discipline entry, not a defect pattern**. F27 catalogues the validated
+> dev-loop form of ADSD v1.2.1's "persona simulation as 5th audit dimension".
+> v1.2.1 introduced persona simulation as a *pre-release* audit pattern.
+> Studio's M5 cycle validated the *continuous* variant: persona → concrete PR
+> → land → re-spawn persona → verify gap closed → next PR. Pattern emerges
+> as a dev-loop primitive, not a one-shot pre-release ceremony.
+
+### Definition
+
+Persona simulation is dispatched as **a dev-loop step** in the same
+cadence as test-runs and lint-runs, not as a pre-release audit. Each
+persona round produces concrete findings; each finding maps to exactly
+one PR ({README edit, ADR addendum, finding, doc fix, code fix}); the
+PR lands; a fresh persona round verifies the gap is closed. The loop
+runs continuously across releases, not once-per-release.
+
+Loop shape:
+
+```
+Persona Vn dispatched (Mei v1 / Aleksandr v1 / Sarah v1)
+    ↓
+Findings filed; each maps to exactly one PR
+    ↓
+PRs land within hours (not next release cycle)
+    ↓
+Persona V(n+1) dispatched against the same persona profile
+    ↓
+Verify prior gaps closed; surface new gaps (typically post-rewrite, the
+README has new vocabulary that wasn't in V1)
+    ↓
+Next round of PRs
+```
+
+### Symptoms (legitimate form)
+
+- Multiple persona rounds per persona profile within a single release
+  window (Mei v1 → Mei v2 → Mei v3)
+- Each persona round's findings have a 1:1 mapping to PRs that land
+  before the next round
+- README / positioning evolves measurably between rounds (a Mei v1
+  finding "what's an ADR?" → README v2 has §"Methodology vocabulary"
+  → Mei v2's response no longer flags vocabulary)
+- Persona finding-rate decreases per round (V1 produces ~10 findings,
+  V2 ~5, V3 ~2; saturation)
+- Persona dispatch is a P7 step in the dispatch SOP, not a pre-tag
+  ceremony
+
+### Root cause for the pattern's value
+
+Internal review agents (P7-REVIEW) maintain *internal* coherence — "is
+the code sound?". Persona agents simulate *external* coherence — "would
+a real user understand this?". Internal review cannot catch external-
+coherence gaps because the internal reviewer has the same context as
+the writer. Only an agent that starts cold (persona simulation with
+explicit fresh-context constraint) can probe the external surface.
+
+Continuous (vs pre-release-only) cadence matters because each README
+rewrite surfaces *new* external-coherence gaps. The vocabulary that
+replaces the old vocabulary may itself be opaque to the persona. Only
+re-running the persona against the new version closes the loop.
+
+### Evidence
+
+Cobrust Studio M5 cycle, 2026-05-12 (case study §4.3):
+
+- **Mei v1** (Python data scientist target user) → 4 findings: vocabulary
+  confusion ("what's an ADR?"), missing "why not Linear/Notion?",
+  install path assumes `rustup`, "is this production-ready?".
+- **README rewrite** (`339e1ab`): §"Methodology vocabulary" table added;
+  §"Why this and not Linear + git?" comparison; §"Honest status"
+  section naming patch dance; §"Looking for design partners" with
+  concrete asks.
+- **Mei v2** → vocabulary confusion resolved; new gap: "Honest-status"
+  placement was buried mid-page; persona-naming was visible to users.
+- **README v2 rewrite**: "Honest-status" moved to top of README;
+  persona-naming removed from public-facing copy.
+
+Aleksandr loop (Rust skeptic):
+
+- **Aleksandr v1** → F-05 dead deps catch (`unicode-normalization`, `uuid`,
+  `hex`, `tracing` lifted from upstream but unused); missing CI matrix.
+- **2 PRs landed** (`339e1ab` dead-deps removal + `58cbe94` matrix CI).
+- **Aleksandr v2** → next PR filed: Windows test matrix (Sarah's release.yml
+  added Windows tarball builds, but the test matrix only covered Linux +
+  macOS).
+
+Sarah loop (OSS evaluator / tech-lead):
+
+- **Sarah v1** → bus-factor flag, no SECURITY.md, no CONTRIBUTING.md.
+- **PRs landed**: CI matrix + release pipeline + design-partner template.
+- **Sarah v2** → verdict updated 6mo-watch → 3mo-watch; flagged R8
+  (closed-feedback-loop, see F28) and R9 (README-vs-release drift, see
+  F1.4).
+
+All three persona profiles ran 2 rounds within a 4-hour window after
+v0.1.2. Finding-rate decreased per round (V1: 10 items; V2: 4 items).
+~15 concrete PR items in 90 min total persona dispatch time. ~7 landed
+in the same wave.
+
+### Rule of thumb
+
+> **Persona simulation is a dev-loop primitive, not a pre-release
+> ceremony. Run it continuously, with finding-rate as the saturation
+> signal.**
+>
+> Five preconditions for legitimate continuous persona testing:
+>
+> 1. **Personas richly defined**: years of experience, prior burned-by
+>    experiences, current frustrations — not "a Python dev".
+> 2. **Specific scenario per round**: "you have 30 min on HN", not
+>    "evaluate this README".
+> 3. **Stay-in-character constraint** in prompt: no "as an AI..."
+>    breakouts.
+> 4. **Structured output fields** aligned to persona's actual decision:
+>    "would I upvote?", "what would I PR if I had an afternoon?".
+> 5. **1:1 finding-to-PR mapping**: each finding maps to exactly one of
+>    {README edit, ADR addendum, finding, doc fix, code fix}. Findings
+>    mapping to "no action / acknowledged" are research findings (file
+>    for case study), not product findings.
+>
+> Saturation signal: when finding-rate falls below ~2 new findings per
+> persona round, the persona profile has reached coverage saturation
+> for the current artifact. Pause this profile; rotate in a different
+> persona; resume when the artifact changes substantially.
+
+### Recovery
+
+When the pattern degrades (persona output not driving PRs):
+
+1. Audit the finding→PR mapping. If >30% of findings map to "no action",
+   the persona prompt is producing generic feedback, not decision-bound
+   feedback. Tighten constraints 1-5 above.
+2. Audit finding-rate. If V2 produces *more* findings than V1, the
+   intervening rewrite surfaced new gaps — that's the pattern working.
+   If V2 produces the same findings, the rewrite missed the gap.
+
+### Prevention going forward
+
+In every ADSD project's dispatch SOP:
+
+1. **Persona-as-step in dispatch template**: after every README / public
+   surface PR, dispatch the relevant persona profiles before the next
+   wave starts.
+2. **Persona finding-rate tracked per round**: record rate-of-new-findings
+   in the case study or operations log; saturation triggers profile
+   rotation.
+3. **Persona prompts versioned**: keep persona prompts in `templates/
+   personas/<profile>.md` so V1 and V2 use the same persona profile
+   text; only the scenario differs.
+
+F27 composes with F28 (persona-simulation-as-validation epistemic risk)
+— F27 is the legitimate dev-loop form; F28 names the failure mode that
+emerges when F27's loop becomes the *substitute* for external grounding
+rather than an internal-coherence check. The two entries must be read
+together.
+
+---
+
+## F28 — Persona-simulation-as-validation epistemic risk (closed-feedback-loop sub-form)
+
+> **Confirmed failure mode, surfaced by Studio Sarah v2 as risk R8**. F28 is
+> the failure mode F27 (continuous persona testing) regresses into when
+> persona simulation becomes the *primary* validation surface, with no
+> out-of-distribution grounding from actual external users or independent
+> teams. The feedback loop is internally consistent and externally untested.
+
+### Definition
+
+A project's release-readiness validation pipeline consists of:
+
+- Internal review agents (P7-REVIEW)
+- Persona simulation agents (Mei / Aleksandr / Sarah)
+- The project's own maintainer 守闸
+
+All agents are spawned by the same maintainer / harness / methodology. No
+agent is *out-of-distribution* with respect to the project's training context.
+The persona-simulation loop (F27) iterates: persona → README rewrite →
+persona again → README v2. Each iteration is internally coherent. None of
+the iterations are validated against an actual external user, an independent
+team running the methodology, or a real-world install attempt by someone
+who has never read the project's prompts.
+
+The closed-feedback-loop is the failure mode: **the methodology that built
+the tool is also auditing the tool, with no external grounding**.
+
+### Symptoms
+
+- Persona rounds converge to "PASS-watch" verdicts without any actual
+  external user contact
+- Persona-driven README rewrites optimize for what the persona simulation
+  responds to, not what an actual external reader would respond to
+- Case study artifacts cite the persona output as validation evidence
+  ("Mei v2 confirms the README is now accessible"), with no follow-up
+  external user reading
+- The project's methodology section (ADSD-style) cites the project itself
+  as the methodology's N=2 dogfood, and the project's own personas
+  validate the methodology — circular validation chain
+- From a tech-lead vendor-eval standpoint: the project looks suspicious
+  because the methodology that built the tool is the same methodology
+  auditing the tool
+
+### Root cause
+
+Persona agents are LLMs simulating users. Their training distribution overlaps
+with the maintainer's distribution. When the maintainer rewrites the README
+to address persona findings, the rewrite's vocabulary and framing are
+calibrated to *what the persona simulation responds to* — which is
+calibrated to *what the underlying LLM family interprets as accessible*.
+
+This is structurally a closed feedback loop: the optimizer (maintainer +
+LLM) and the evaluator (persona LLM) share latent space. Improvements
+along the persona-validated axis may or may not correspond to improvements
+along the actual-external-user axis. Without out-of-distribution input,
+the loop converges to a local optimum in the shared latent space.
+
+The methodology (ADSD v1.2.1) explicitly recognizes this risk by treating
+persona simulation as a *dev-loop variant* (F27) — but the case study's
+"PASS-watch" verdicts and methodology's own self-validation through the
+persona loop *do* exhibit the closed-loop pattern absent external grounding.
+
+### Evidence
+
+Cobrust Studio Sarah v2 risk R8 (2026-05-12; persona dispatch artifact
+referenced in case study §4.5 and §10):
+
+Sarah-persona v2 explicitly raised R8 as a tech-lead-vendor-eval finding:
+the maintainer is running 2-round continuous persona tests as a substitute
+for external review; personas are agents simulating users; the Mei v1 →
+Mei v2 → README-rewrite-to-hide-persona-names loop is a closed feedback
+system with no external grounding. ADSD calls this "dev-loop variant" and
+treats it as legitimate. Sarah v2 says: from a tech-lead vendor-eval
+standpoint, it's exactly the failure mode that makes a project suspicious
+— the methodology that built the tool is also auditing the tool, with no
+out-of-distribution input.
+
+Cobrust + Studio N=2 case-study chain (case study §10):
+
+> *"The ADSD methodology distilled from Cobrust (N=1) was the experimental
+> substrate for Studio (N=2). The result confirms: core invariants hold
+> under acceleration."*
+
+Both case studies were authored by the same maintainer's agent harness.
+The "N=2 validation" is methodologically a closed-loop self-validation
+until a third, independent team runs ADSD on a project the maintainer
+did not author.
+
+### Rule of thumb
+
+> **Persona simulation cannot substitute for actual external grounding.
+> A persona-validated artifact is internally coherent; it is not
+> externally validated.**
+>
+> Required external-grounding sources, in increasing strength:
+>
+> 1. **Eventual external persona dispatch**: a persona agent dispatched
+>    by a *different maintainer* on a *different harness*, with no
+>    access to the project's own prompts. The "external persona" is
+>    still an LLM simulation, but it's no longer the same harness.
+> 2. **Actual external user contact**: a real person (named, attributable,
+>    not anonymous) installs the project from a clean shell, reports
+>    back. One real user is worth ~10 persona rounds.
+> 3. **N=3+ independent case studies**: another team adopts the
+>    methodology on a project the methodology's author did not touch,
+>    reports outcomes. N=3 is the minimum to move from "self-validated"
+>    to "externally validated".
+>
+> Until at least source 1 lands, every persona-simulation-driven
+> validation claim must carry a **"closed-loop self-validation" caveat**
+> in the case study, README, and methodology document.
+
+### Recovery
+
+When F28 is firing (a project relies on persona simulation as primary
+validation):
+
+1. **Add closed-loop caveat to case study and README**: explicitly name
+   that the validation is internal; persona simulation is a dev-loop
+   step, not external grounding.
+2. **Solicit at least one external user**: design-partner outreach, HN
+   post, conference demo. One real-user data point breaks the closed
+   loop.
+3. **Track N independent applications of the methodology**. Cobrust
+   Studio is N=2 by the same maintainer. The methodology becomes
+   externally validated at N=3 by an independent team.
+4. **Distinguish "internal coherence claim" from "external validation
+   claim"** in all marketing and case-study copy. F8 (marketing
+   overreach) applies: "persona-validated" is a weaker claim than
+   "user-validated" and must be qualified accordingly.
+
+### Prevention going forward
+
+In every ADSD project that uses continuous persona testing (F27):
+
+1. **Case-study template includes §"External grounding status"**: enumerate
+   which validation sources (persona only / external persona / external
+   user / independent team) have been exercised.
+2. **README "Validated against" claims must cite the strongest source
+   exercised**, not the most flattering. "Validated against persona
+   simulation" is honest; "user-validated" without an actual user is
+   F8-class overreach.
+3. **Active outreach for external grounding**: a design-partner template,
+   a SECURITY.md, a CONTRIBUTING.md — anything that channels external
+   contact. Bus-factor 1 projects (Studio is one) cannot escape F28
+   without active outreach.
+4. **Methodology document carries the same caveat**: ADSD itself must
+   name "N=2 validated by same maintainer; awaiting N=3 independent
+   adoption" until that adoption lands.
+
+F28 is the structural risk that makes F27 (continuous persona testing)
+both valuable and dangerous. F27 is the right discipline for internal
+coherence; F28 is what happens when F27's loop is treated as external
+validation. The two entries close together: F27 names the legitimate
+form, F28 names the failure mode, and the prevention is to always run
+F27 with the F28 caveat attached.
+
+---
+
 ## Catalogue maintenance
 
 This catalogue is alive — add to it as you encounter new failure modes.
@@ -1597,7 +2312,8 @@ When adding:
 3. Evidence section MUST cite a specific case-study artifact (not
    "I think we hit this once")
 4. Submit via PR; reviewer should verify the failure mode is
-   distinct from existing F1-F11
+   distinct from existing F1-F28 (and from existing F1 Sediment
+   Family sub-forms F1.0-F1.4, F16, F17, F18, F19, F20, F21)
 
 If a failure mode becomes obsolete (e.g. tool now prevents it
 automatically), don't delete — mark as "superseded by <SOP>" and link.
