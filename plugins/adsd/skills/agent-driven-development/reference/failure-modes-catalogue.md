@@ -1188,7 +1188,7 @@ d337cf0 tests(adr-0044): W2 Phase 3 LeetCode oracle-match corpus (TDD step 1)
 0145e8b feat(examples): W2 Phase 3 — 10 LeetCode .cb programs (TDD dev step, ADR-0044 stdin/argv usage)
 ```
 
-The TDD step 1 commits land before TDD dev step commits in temporal order. **First executed test-first sprint after 9 weeks of constitution mandate.** F20 is closed for Cobrust via execution evidence, not just documentation.
+The TDD step 1 commits land before TDD dev step commits in temporal order. **First executed test-first sprint after 12 days of constitution mandate fact-violated.** F20 is closed for Cobrust via execution evidence, not just documentation.
 
 ### Rule of thumb
 

@@ -1,6 +1,6 @@
 # Agent-Driven Software Development (ADSD)
 
-> Methodology distilled from running a 9-week multi-agent Rust compiler
+> Methodology distilled from running a 12-day multi-agent Rust compiler
 > project where AI agents wrote ≥ 70% of the code under human strategic
 > direction.
 
@@ -134,7 +134,7 @@ The script also verifies reference files have YAML frontmatter and ADR files are
 
 ADSD was extracted from the [Cobrust](https://github.com/Cobrust-lang/cobrust)
 project, a Rust-implemented Python successor with an AI-native compiler.
-Cobrust shipped its `0.1.0` stable tag on 2026-05-10 after a 9-week run
+Cobrust shipped its `0.1.0` stable tag on 2026-05-10 after a 10-day intensive run (first commit 2026-04-30 → v0.1.0 tag 2026-05-10)
 with multiple parallel Claude agents (Opus 4.7 and Sonnet 4.6) coordinated
 via the methodology you'll find in [`SKILL.md`](./plugins/adsd/skills/agent-driven-development/SKILL.md).
 
