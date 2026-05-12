@@ -128,8 +128,7 @@ REPORT FORMAT: [P7-COMPLETION] with verification block (paste raw cargo test out
 ## 下一步
 
 - 读 [`concept-map.md`](./concept-map.md) 看 ADSD 完整概念图
-- 读 [`why-adsd.md`](./why-adsd.md) 看为什么需要这套方法论 (如果还没被说服)
-- 撞坑了写 finding, 不要藏起来. F1-F21 catalogue 在 [`reference/failure-modes-catalogue.md`](https://github.com/Cobrust-lang/agent-driven-development/blob/main/plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md), 你可能撞上同一个
+- 撞坑了写 finding, 不要藏起来. F1-F24 catalogue 在 [`reference/failure-modes-catalogue.md`](https://github.com/Cobrust-lang/agent-driven-development/blob/main/plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md), 你可能撞上同一个
 
 ## 常见问题
 
