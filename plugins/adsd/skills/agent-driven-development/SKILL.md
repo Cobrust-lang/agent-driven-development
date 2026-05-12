@@ -1,6 +1,6 @@
 ---
 name: agent-driven-development
-description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks). Provides 4-tier role topology (P10 CTO / P9 tech lead / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), F1–F18 failure-modes catalogue, AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md and case-study/cobrust-multi-agent-experience.md on demand.
+description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks). Provides 4-tier role topology (P10 CTO / P9 tech lead / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), F1–F18 failure-modes catalogue, AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md and case-study/cobrust-multi-agent-experience.md (N=1) + case-study/cobrust-studio-experience.md (N=2, 2-day MVP applying the methodology under acceleration) on demand.
 ---
 
 # Agent-Driven Software Development (ADSD)
@@ -8,9 +8,11 @@ description: ADSD methodology for managing multi-agent software projects where A
 > A methodology for managing software projects where the bulk of the work
 > is done by AI agents under human strategic direction.
 >
-> **Distilled from**: Cobrust project, **12 days wall-clock (2026-04-30 → 2026-05-12)**, ~278 commits, 48+ ADRs, 24+ findings, 2 P0 codegen bugs found via organic stress test, v0.1.0 + v0.1.1 + v0.1.2 shipped + α Phase F.2 in flight.
+> **Distilled from**: Cobrust project (N=1), **12 days wall-clock (2026-04-30 → 2026-05-12)**, ~278 commits, 48+ ADRs, 24+ findings, 2 P0 codegen bugs found via organic stress test, v0.1.0 + v0.1.1 + v0.1.2 shipped + α Phase F.2 in flight.
 >
-> **Status**: extracted 2026-05-10. Apply as-is or adapt; this is
+> **N=2 validated against**: Cobrust Studio (2026-05-11 → 2026-05-12), 125 commits over ~21 hours, 6 ADRs, 4 findings, v0.1.0 broken → v0.1.1 broken → v0.1.2 usable patch dance documented as the canonical "tag → audit → patch" release pattern. First F20 systemic closure in a non-origin project. See `case-study/cobrust-studio-experience.md`.
+>
+> **Status**: extracted 2026-05-10; N=2 validated 2026-05-12. Apply as-is or adapt; this is
 > battle-tested but not orthodoxy.
 
 ---
@@ -862,8 +864,9 @@ See `templates/` folder:
 - `templates/dispatch-prompt-p7.md`
 - `templates/handoff-cover-letter.md`
 
-See `case-study/` folder for Cobrust experience report:
-- `case-study/cobrust-multi-agent-experience.md`
+See `case-study/` folder for ADSD case-study reports:
+- `case-study/cobrust-multi-agent-experience.md` — **N=1** Cobrust language project (12-day multi-agent build; ~278 commits; methodology distilled from this run)
+- `case-study/cobrust-studio-experience.md` — **N=2** Cobrust Studio (2-day MVP applied the codified methodology; 125 commits; first F20 closure in a non-origin project; first "tag → audit → patch" release pattern documentation)
 
 ---
 
@@ -897,7 +900,8 @@ Everything else is adaptable.
 
 - Part 6 Full failure-modes catalogue: `reference/failure-modes-catalogue.md`
 - Templates: `templates/*.md`
-- Cobrust case study: `case-study/cobrust-multi-agent-experience.md`
+- Cobrust case study (N=1, language project, 12-day multi-agent build): `case-study/cobrust-multi-agent-experience.md`
+- Cobrust Studio case study (N=2, project-management console, 2-day MVP — first F20 closure in a non-origin project; first "tag → audit → patch" release pattern documentation): `case-study/cobrust-studio-experience.md`
 
 ### Cross-pollination from Anthropic + OpenAI public guidance (v1.2.0)
 
@@ -919,6 +923,19 @@ translation pipeline. ~278 commits over 12 wall-clock days, 49 ADRs (0001..0048 
 4 parallel-agent topology stress-tested at 4-way max. Patterns
 documented here passed the test of "did we hit this in production
 and did the fix work?".
+
+**N=2 validation** (2026-05-11 → 2026-05-12): Cobrust Studio — a
+self-hosted web console for AI agent project management — applied
+the codified methodology as input rather than co-evolving with it.
+125 commits over ~21 hours wall-clock, 6 ADRs, 4 findings, 3 tags
+(v0.1.0 broken / v0.1.1 broken / v0.1.2 usable). First F20 systemic
+closure in a non-origin project; first documented "tag → audit →
+patch" release pattern; first "recursive F20 closure" (enforcement
+script auditing itself). See `case-study/cobrust-studio-experience.md`.
+The methodology survived contact with a new codebase under
+acceleration, surfaced 2 F1.0 catches and 2 F19/F20/F21 catches as
+empirical evidence the v1.2.0/v1.2.1 catalogue additions are
+load-bearing.
 
 Specific Cobrust artifacts that inspired each Part:
 - Part 1 Topology: `findings/multi-agent-cobrust-topology.md`
