@@ -1288,6 +1288,205 @@ This convention applies to any AI agent role that produces persistent artifacts 
 
 ---
 
+## F22 — Coverage drive without bug-fix cadence (mitigation pattern validated, F1 Sediment Family suppression sub-form)
+
+> **F1 sub-form, candidate → validated-as-suppressed**. F22 is the negative pattern an ADSD project hits when it scales a stress-test corpus (N → 5N → 10N programs) without applying fix-pack between scales. ADR-0047 (LeetCode coverage strategy) was authored as the explicit F22 mitigation, and the LC-100 → Option H decision was the empirical validation that the mitigation works.
+
+### Definition
+
+The temptation to run "all 3816 LeetCode problems" / "all 500 test cases" / "all N stress-test inputs" *before* triaging and fixing bugs from the first batch. The result: each subsequent batch hits the same N bug-patterns as the first, multiplying the surface defect count without surfacing new failure modes. Bug-pattern density per batch saturates after ~100 programs; the next 3700 are mostly re-discovery of the same gaps.
+
+### Symptoms
+
+- A coverage-drive sprint exits with 3000+ test programs but only 5-7 distinct bug-patterns
+- Triage time grows quadratically with batch size (more programs to classify into same patterns)
+- "Pass rate" stays roughly flat across scales (e.g. 77% at N=100 stays 75-80% at N=500 absent fix-pack)
+- Fix-pack debt accumulates: each unfixed pattern blocks ~N/k programs per round, with k ≈ patterns
+
+### Root cause
+
+Coverage-as-throughput optimism: the assumption that running more cases surfaces more bugs. In practice, the bug-pattern distribution is heavy-tailed — the first ~100 programs of any reasonable sample surface ~80% of patterns. Continuing past saturation is re-discovery.
+
+ADR-0047 codified the **ramp gate**: pass rate < 70% → HOLD (fix-pack), 70-90% → conditional GO (fix-pack-OR-ramp evidence-driven), ≥ 90% → SKIP back to other work (gap-saturated, no Tier B ROI).
+
+### Evidence
+
+**LC-100 Tier A discovery sweep (2026-05-12)**: P9 opus + 4 P7 sonnet TDD pairs ran 100 programs across 10 algorithm categories. Initial result 77/100 with 3 distinct failure patterns (Pattern A codegen rodata literals, Pattern B list[str] type gap, Pattern C test corpus oracle defects).
+
+**ADR-0047 ramp logic predicted**: 77% is the conditional zone — Option G (immediate Tier B) vs Option H (fix-pack first). P9 + review-claude both recommended Option H based on F22 mitigation principle: don't ramp the same defect distribution to 5N scale.
+
+**Option H executed** at commits `2d952e0` (Sprint 1 Pattern C fix, +15 programs) + `2a8bdc0` (Sprint 2 Pattern A C-ABI fix, +7 programs) = 99/100 stable. Post-fix-pack pass rate 99/100 = 99% triggers ADR-0047's SKIP-back-to-W1 gate — Tier A is gap-saturated, Tier B has no ROI.
+
+**Validation**: F22 was NOT fired because the mitigation existed and was followed. The reverse-evidence (counterfactual: had ADR-0047 not existed, P9 likely would have ramped to 500 programs and re-discovered the same 3 patterns at ~75-defect scale, wasting ~5-10× agent-time).
+
+### Rule of thumb
+
+> **Stress-test corpus growth (N → 5N) MUST be gated by current-batch pass rate.**
+>
+> Decision logic:
+> - < 70% pass: HOLD; fix-pack the patterns surfaced; re-baseline at N before ramping
+> - 70-90% pass: conditional GO with bug-fix-cost check — if fix-pack > 1 day, ramp anyway; if ≤ 1 day, fix first
+> - ≥ 90% pass: SKIP — corpus is gap-saturated for this language area; ramping has no ROI
+
+Time-cap the discovery sweep at the same time: ADR-0047 capped Tier A at 1-2 day. Without a time-cap, F22 manifests as "ramp anyway because the test feels useful". The cap forces the gate decision.
+
+### Recovery
+
+If F22 has already fired (you ramped before fixing):
+
+1. **Triage all failures into pattern groups** (ADR-0047 Phase 3-style). Aim for 3-7 distinct patterns; if more, the test corpus is noisy.
+2. **Identify the high-multiplicity patterns**: which 2-3 patterns account for ≥ 80% of failures? Fix those first.
+3. **Re-baseline at the smaller scale (e.g. N) after the fix-pack**. Confirm pass rate ≥ 90% before considering further ramp.
+4. **Document the cost lesson** as a finding — "we ramped to 5N before fix-pack and lost ~K agent-hours to repeated triage."
+
+### Prevention going forward
+
+For any future stress-test corpus design:
+
+1. **ADR the ramp strategy before generating the corpus** (per ADR-0047 template). Include the gate thresholds.
+2. **Build the time-cap into the dispatch prompt**. P9 sub-agents that exceed cap MUST escalate, not auto-ramp.
+3. **Track bug-pattern density per batch**. When it falls below ~1 new pattern per 50 programs, you've hit saturation.
+4. **Reverse-evidence is real evidence**. When F22 doesn't fire, document the counterfactual cost saved.
+
+---
+
+## F23-A — Oracle authorship without independent verification (F1 Sediment Family, oracle-verify sub-form)
+
+> **F1 sub-form, confirmed**. Same family as F1.1 (declared invariants without enforcement) and F17 (sub-agent KPI self-report fidelity), but specific to **the test oracle itself** rather than the implementation under test. The pattern: the agent authoring the test corpus mentally executes the algorithm and writes both the algorithm description AND the expected output. Without an independent verifier (a reference implementation), arithmetic / DP-trace / tree-encoding mistakes get encoded directly into the oracle — silently invalidating the test gate.
+
+### Definition
+
+A P7-TEST sonnet agent produces a test corpus (`test.toml` cases + algorithm paraphrase in README) by mental execution of the algorithm. The expected output field is the agent's mental computation result — no independent verification path runs. Bugs in the agent's mental execution become bugs in the oracle.
+
+The downstream effect: a P7-DEV agent's `solution.cb` may be algorithmically correct, but fails the oracle because the oracle itself is wrong. Triage misclassifies this as a "language gap" instead of a "test corpus defect", wasting language-implementation effort on a test-author mistake.
+
+### Symptoms
+
+- Algorithm-style stress-test corpus shows 15-30% failures concentrated in arithmetic / DP-trace / graph-traversal categories
+- DEV agent's failing solutions look algorithmically reasonable on careful read
+- Quick reference-implementation check (running the algorithm in Python by hand) confirms DEV output is correct and the oracle is wrong
+- "Pattern: test corpus defects" emerges as a primary failure class in triage
+
+### Root cause
+
+Mental execution is unreliable for non-trivial algorithms. Even high-quality LLM agents have non-zero error rate when computing:
+- DP transitions for sequences > ~10 elements
+- BFS / DFS over trees with > ~5 levels
+- Modular arithmetic chains
+- Bit manipulation edge cases
+- String parsing with escape sequences
+
+The author of the algorithm description and the author of the expected output are the same agent in the same session — confirmation bias guarantees the oracle agrees with the agent's mental model, not with reality.
+
+### Evidence
+
+**LC-100 Tier A failure triage**: 15 of 23 initial failures (65%) were oracle-authorship defects, not language gaps. Concrete examples (from `lc100-pattern-c-test-corpus-defects.md`):
+
+- coin-change DP: agent computed DP[5] = 2 mentally; actual algorithm returns 1
+- BFS level-count: agent encoded "depth = 3" for a tree where actual BFS returns 4 (off-by-one on root)
+- Roman-to-int: agent's mental arithmetic on "MCMXCIV" yielded 1995 instead of 1994 (subtraction-rule miscount)
+- Climbing-stairs: agent encoded fib(N+1) instead of fib(N) (off-by-one on base case)
+
+15 corrections were derivable post-hoc by running reference Python implementations against the same inputs. The author's mental execution had been the sole oracle source — no second pass.
+
+**Codified mitigation: ADR-0047a verify.py mandate** (2026-05-12). Every Tier B program must ship with a `verify.py` reference Python implementation that runs against the `test.toml` corpus and confirms the oracle before the DEV phase begins.
+
+### Rule of thumb
+
+> **The test oracle author MUST run an independent verification (different code path, ideally different agent) before declaring the corpus ready.**
+>
+> Concrete forms:
+> 1. **Reference-implementation pattern (lightweight, default)**: P7-TEST authors a `verify.py` reference Python impl in the same sprint; runs it against test cases; commits only when all match.
+> 2. **CPython differential pattern (heavyweight, for numerical / library translations)**: oracle is computed by an authoritative external implementation; agent encodes the input + the differential check, not the expected output.
+> 3. **Hand-verified pattern (lowest scale, ≤ 5 cases)**: human reviewer hand-traces each case; works only at small N.
+
+For algorithm-style corpora (LeetCode shape), Form 1 (verify.py) is the empirically validated default.
+
+### Recovery
+
+When F23-A fires (oracle defects discovered post-hoc):
+
+1. **Triage**: separate corpus-defect failures from language-gap failures. The corpus-defect class shows DEV output looking algorithmically reasonable.
+2. **Author reference impls** (Python, Rust, or pseudocode) for the affected cases; run them against the corpus.
+3. **Fix the corpus, not the implementation**, for any case where reference impl confirms DEV output.
+4. **Re-run the full corpus** post-fix; confirm pass rate change matches the corrected-defect count.
+
+### Prevention going forward
+
+In any future stress-test corpus dispatch:
+
+1. **Update dispatch templates**: P7-TEST prompt MUST include verify.py authoring as a step before test.toml finalization (per ADR-0047a pattern).
+2. **Sprint exit gate**: `[P7-TEST-CORPUS-READY]` report MUST include per-program `verify_py_matches: yes/no` rows.
+3. **CI extension (stretch)**: a release-readiness-style harness re-runs verify.py against test.toml at corpus-edit time, catching oracle drift between sprints.
+
+---
+
+## F23-B — Synthetic stress test distribution drift from real-world (F1 Sediment Family, distribution-coverage sub-form) [CANDIDATE, UNMEASURED]
+
+> **F1 sub-form, candidate**. A stress-test corpus is hand-picked or algorithmically generated to exercise a specific surface (e.g. "10 algorithm categories × 10 programs each"). The resulting bug-pattern distribution may diverge from what real-world programs in the same language would surface. The corpus's coverage claim ("we tested 100 programs") may not generalize to "the language handles 100% of similar real-world programs."
+
+### Definition
+
+A discovery sweep's bug-distribution is a function of the corpus's input-distribution. If the corpus's distribution differs from production-distribution, the bug-set found is unrepresentative — both falsely confident (missing bugs that real programs would surface) and falsely alarming (surfacing bugs that real programs never trigger).
+
+For Cobrust LC-100: 10 algorithm categories × 10 paraphrased programs each is a synthetic distribution. Real-world Python programs (e.g. tomli, msgpack, dateutil) have very different structure — heavy on string parsing, library boilerplate, error-handling, less on DP/graph/numerical algorithms.
+
+### Symptoms (predicted, not yet validated)
+
+- Stress-test discovery surfaces N bug-patterns; real Python lib translation later surfaces M ≠ N bug-patterns
+- Bug-pattern overlap between synthetic and real-world is < 70%
+- "Pass rate at N synthetic programs ≥ 90%" does NOT imply "pass rate on real Python libs ≥ 90%"
+
+### Root cause
+
+Distribution mismatch:
+
+- **Synthetic-leaning bias**: algorithm-style problems exercise control flow + arithmetic + small data structures. Real Python programs exercise string manipulation + I/O + library interop more heavily.
+- **Length distribution**: LeetCode programs typically 20-100 LOC. Real Python files are 200-2000 LOC with multi-module imports.
+- **Error-handling absence**: algorithm-style problems usually have well-defined inputs; real programs need defensive error handling, validation, malformed input recovery.
+
+A 99/100 pass rate on synthetic corpus doesn't bound the failure rate on production-distribution programs.
+
+### Evidence
+
+**Unmeasured at LC-100 Tier A close (2026-05-12)**. Empirical validation requires running translated real Python libraries (T1.1 tomli, msgpack, dateutil) against the same Cobrust compiler that achieves 99/100 on LC-100, then comparing bug-pattern overlap.
+
+Hypothesis: pattern overlap will be < 60%. Real-Python translation will surface string-handling + library-interop bugs that LC-100 doesn't probe; LC-100 surfaces algorithmic-edge bugs that real Python rarely hits.
+
+The candidate becomes "confirmed F23-B" when this measurement happens.
+
+### Rule of thumb
+
+> **A stress-test pass rate is a function of the test corpus distribution. To bound real-world failure rates, run additional probes on the actual production distribution (or a sample of it).**
+>
+> Practical forms:
+> 1. **Cross-distribution validation**: after a synthetic corpus closes, run a smaller (~10-30) real-distribution sample. Compare bug-pattern overlap.
+> 2. **Real-distribution prioritization**: if real-world coverage is the goal, prioritize real-distribution corpus design over synthetic.
+> 3. **Cite distribution explicitly**: marketing / release messaging "Cobrust passes N/M LeetCode" must qualify "(synthetic algorithm-style corpus; real Python lib translation rates vary)".
+
+### Recovery
+
+If F23-B is suspected (synthetic pass rate is high but real-world deployment has issues):
+
+1. **Build a real-distribution sample**: ~30 representative programs from production code or real libraries.
+2. **Run against the same compiler**; classify failures.
+3. **Pattern-overlap analysis**: which patterns appear in both? Which only in synthetic? Which only in real-world?
+4. **Update marketing / release messaging** to cite the appropriate distribution.
+
+### Prevention going forward
+
+When designing future stress-test corpora:
+
+1. **Declare the corpus distribution in the dispatch ADR**. "10 algorithm categories × 10 programs each" is a synthetic-leaning distribution and must be acknowledged as such.
+2. **Add a real-distribution sample at Phase 4** of any large coverage sweep. Even 10-20 real programs validate the synthetic pass rate's generalizability.
+3. **Marketing copy must qualify**: "99/100 on synthetic algorithm corpus" not "99% language coverage." F8 (marketing overreach) prevention.
+
+### Status
+
+**Candidate**, awaiting empirical measurement post-T1.1 real-LLM E2E on msgpack / dateutil / requests / click. When pattern-overlap data lands, this entry promotes to confirmed.
+
+---
+
 ## Catalogue maintenance
 
 This catalogue is alive — add to it as you encounter new failure modes.
