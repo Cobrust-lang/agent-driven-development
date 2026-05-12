@@ -8,9 +8,7 @@ description: ADSD methodology for managing multi-agent software projects where A
 > A methodology for managing software projects where the bulk of the work
 > is done by AI agents under human strategic direction.
 >
-> **Distilled from**: Cobrust project, ~178 commits, ~24 hours of intense
-> multi-agent work, 39 ADRs, 14 findings, 2 P0 codegen bugs found via
-> organic stress test, 0.1.0-beta release plan.
+> **Distilled from**: Cobrust project, **12 days wall-clock (2026-04-30 → 2026-05-12)**, ~278 commits, 48+ ADRs, 24+ findings, 2 P0 codegen bugs found via organic stress test, v0.1.0 + v0.1.1 + v0.1.2 shipped + α Phase F.2 in flight.
 >
 > **Status**: extracted 2026-05-10. Apply as-is or adapt; this is
 > battle-tested but not orthodoxy.
@@ -895,7 +893,7 @@ Everything else is adaptable.
 
 ## Cross-references (within this skill)
 
-### Originals (distilled from Cobrust 9-week run)
+### Originals (distilled from Cobrust 12-day intensive run)
 
 - Part 1 Topology details: `reference/role-topology.md`
 - Part 2 Two-phase dispatch deep dive: `reference/two-phase-dispatch.md`
@@ -920,7 +918,7 @@ These five represent **5 of 12 v1.2.0 gap candidates** identified by review-clau
 
 This skill is distilled from the Cobrust project (2026-04-30 to
 2026-05-10) — a Rust-implemented Python successor with AI-native
-compiler. ~178 commits, 39 ADRs, 14 findings, 2 stress-test farms,
+compiler. ~278 commits over 12 wall-clock days, 48+ ADRs, 24+ findings, 2 stress-test farms,
 4 parallel-agent topology stress-tested at 4-way max. Patterns
 documented here passed the test of "did we hit this in production
 and did the fix work?".

@@ -13,7 +13,7 @@
 
 ## 30 秒概览
 
-ADSD 是从 Cobrust 项目 9 周实战提炼的**多 agent 工作纪律**, 把以下三件事做硬:
+ADSD 是从 Cobrust 项目 12 天密集开发实战 (2026-04-30 → 2026-05-12, ~278 commits) 提炼的**多 agent 工作纪律**, 把以下三件事做硬:
 
 1. **决策捕获** — 每个跨文件的决定都写 ADR (Architecture Decision Record)
 2. **失败捕获** — 每次"翻车 / 意外 / 死胡同"都写 Finding (负向结果)

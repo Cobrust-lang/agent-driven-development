@@ -13,7 +13,7 @@ If you're writing a single-agent small script, ADSD is overkill. Skip.
 
 ## 30-second overview
 
-ADSD is the multi-agent working discipline distilled from 9 weeks of Cobrust project, codifying:
+ADSD is the multi-agent working discipline distilled from 12 days of intensive Cobrust development (2026-04-30 → 2026-05-12, ~278 commits), codifying:
 
 1. **Decision capture** — every cross-file decision becomes an ADR (Architecture Decision Record)
 2. **Failure capture** — every "this broke / surprised / dead-ended" becomes a Finding (negative result)
