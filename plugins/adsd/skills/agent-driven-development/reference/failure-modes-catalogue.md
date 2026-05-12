@@ -1487,6 +1487,96 @@ When designing future stress-test corpora:
 
 ---
 
+## F24 — Stress-test pass via primitive-as-everything simulation (F1 Sediment Family, coverage-fidelity sub-form)
+
+> **F1 sub-form, confirmed**. Related to F23-A (oracle-without-verify) and F23-B (distribution drift) but distinct: F24 is about **what the implementation under test actually exercises**. The pass rate metric becomes semantically vacuous when programs route around a missing language feature using a primitive type (list as linked-list / dict as tree / list-as-stack-as-queue) — the language passes the test but doesn't actually implement the structure the test category claims to cover.
+
+### Definition
+
+A stress-test corpus organized by feature category (e.g. "10 linked-list problems / 10 tree problems / 10 hash-set problems") shows a high pass rate. But inspection of the actual program implementations reveals they all use a single primitive type (`list[i64]`, `array<T>`) as the data backbone, simulating the richer category-named structure via index arithmetic or value-arrays. The language never actually compiled a real linked-list / tree / set type — the test passed via simulation, not via real coverage of the claimed feature category.
+
+### Symptoms
+
+- Stress-test categories named after data structures show high pass (e.g. "10/10 linked list", "9/10 binary tree")
+- All "linked list" .cb programs share a comment like `# Algorithm: store values in an array then two-pointer / index manipulate`
+- Tree problems use level-order index encoding (`parent = (i-1)/2`) on a flat array, not real tree nodes
+- Hash-set problems use dict-with-1-as-value, not a Set type
+- `grep -r 'struct.*Node\|struct.*Tree\|enum.*List' src/` returns nothing matching real recursive types
+
+### Root cause
+
+The corpus author (P7-TEST or human spec author) selects categories by their algorithmic shape ("LinkedList problems", "Binary Tree problems") but the corpus's pass condition is "expected stdout matches actual stdout" — which is achievable by **any** correct algorithm regardless of data structure. The cheapest correct implementation often routes through a primitive the language already supports, bypassing the structure the category implicitly claims.
+
+Without an explicit constraint "this category MUST use a recursive struct" or "this category MUST allocate K Tree nodes", the pass rate measures algorithmic correctness, not feature-category coverage.
+
+This is F1 family because: the coverage claim ("we tested 10 linked list problems") is declared, but no enforcement mechanism verifies the language actually exercised linked-list semantics. The declaration drifts from the enforced reality.
+
+### Evidence
+
+**Cobrust LC-100 Tier A close (2026-05-12, HEAD 459b820)**: 99/100 pass rate. Linked-list problems inspection:
+
+```cobrust
+# examples/leetcode-stress/045-linked-list-palindrome/solution.cb
+# Algorithm: store all values in an array, then two-pointer compare from both ends
+fn main() -> i64:
+    let vals = list_new(n)
+    # ... list_set / list_get loops, two-pointer arithmetic
+```
+
+```cobrust
+# examples/leetcode-stress/047-merge-k-sorted-lists/solution.cb
+# Algorithm: store all lists in a flat array, then selection-sort via K pointers
+fn main() -> i64:
+    let flat = list_new(10000)
+    let offsets = list_new(k + 1)
+    # ... index arithmetic, no Node struct
+```
+
+```cobrust
+# examples/leetcode-stress/050-rotate-linked-list/solution.cb
+# Algorithm: values in array, rotate by index
+```
+
+All linked-list programs use `list_new / list_set / list_get` flat-array simulation. Same pattern across the 10 linked-list + 10 tree + N hash-set programs.
+
+Cobrust language as of HEAD 459b820:
+- `grep -rE 'LinkedList|TreeNode|HashSet' crates/cobrust-stdlib/src/` returns Rust-side `HashSet<T>` internal wrappers but **no source-level (`.cb`-visible) types** for LinkedList / Tree / Set
+- `grep -rE 'struct.*ref|recursive struct' crates/cobrust-types/src/` returns nothing matching source-level recursive struct support
+
+Conclusion: the 99/100 pass rate is **valid as algorithmic stress test** but **does not bound the language's recursive-type support**. The two metrics diverge; the corpus's category names suggest coverage that the language did not actually achieve.
+
+### Rule of thumb
+
+> **Coverage claims by feature category MUST be verified at the implementation surface, not just the output surface.**
+>
+> Concrete forms:
+> 1. **Type-asserting pass condition**: corpus per-program asserts that the .cb solution uses the claimed type (e.g. `solution.cb` for LinkedList must contain `struct.*Node` or import the stdlib `LinkedList`). Static check at sprint exit gate.
+> 2. **Feature-category audit**: P9 Phase 3 triage explicitly inspects K random programs per category for primitive-simulation pattern. If > 50% use the same primitive, flag the category as "simulated, not really tested".
+> 3. **Counterfactual sample**: write 1-2 programs per category that DELIBERATELY use the claimed type. If they don't compile, the category was never really covered.
+
+For Cobrust LC-100: forms 1+2 should have fired during P9 Phase 3 triage. Recovery: track the gap as explicit tech debt with a pre-tag blocker (per ADR-0045 user-traction milestone gate pattern).
+
+### Recovery
+
+When F24 has fired (your stress-test passes mask a real coverage gap):
+
+1. **Document the tech debt explicitly**. Write a finding citing per-category simulation patterns observed. Cite specific .cb files.
+2. **Set a binding pre-tag gate**: the next major-version release (v0.X+1.0) MUST NOT ship until the simulated categories have real-type implementations. Codify in an ADR.
+3. **Dispatch the tech debt sprint**: design + implement the missing language features (recursive struct + ref semantics + stdlib LinkedList/Tree/Set generics) + retrofit a subset of programs (3-5 per category) to use the real types.
+4. **Re-baseline pass rate on retrofit subset**: confirm the language really compiles and runs the typed implementations. Pass rate on retrofit subset is the honest coverage metric.
+
+### Prevention going forward
+
+For future stress-test corpus design:
+
+1. **Categorize by data structure constraint, not just by algorithm**. "10 programs that MUST use struct Node" not "10 programs about linked lists" — the difference is enforcement.
+2. **Sprint exit gate per-category**: static analysis confirms each program in a category exercises the claimed feature.
+3. **Cross-reference language ADRs**: if your corpus has a "tree" category, but the language doesn't have an ADR for recursive struct support, the category is fictional until that ADR lands.
+
+This pattern composes with F19 (install-not-tested): both reflect a gap between **what the artifact claims** and **what was actually verified**. F19 is on user-facing surface (install commands), F24 is on test-coverage surface (category claims). Both close by the same principle: independent verification of the claim against reality.
+
+---
+
 ## Catalogue maintenance
 
 This catalogue is alive — add to it as you encounter new failure modes.
