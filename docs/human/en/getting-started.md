@@ -128,8 +128,7 @@ If Claude auto-references ADSD's `reference/` files, you installed correctly. If
 ## Next steps
 
 - Read [`concept-map.md`](./concept-map.md) for the complete ADSD concept diagram
-- Read [`why-adsd.md`](./why-adsd.md) for motivation / value prop (if not yet convinced)
-- When you hit a wall, write a finding. Don't hide it. F1-F21 catalogue is at [`reference/failure-modes-catalogue.md`](https://github.com/Cobrust-lang/agent-driven-development/blob/main/plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md); you may have hit the same one
+- When you hit a wall, write a finding. Don't hide it. F1-F24 catalogue is at [`reference/failure-modes-catalogue.md`](https://github.com/Cobrust-lang/agent-driven-development/blob/main/plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md); you may have hit the same one
 
 ## FAQ
 

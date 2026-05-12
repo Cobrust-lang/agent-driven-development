@@ -243,5 +243,5 @@ The F-pattern catalogue should include cost-anomaly as a diagnostic. Add to disp
 - `reference/prompt-engineering-patterns.md` PT7 — D-rating drives cost
 - `reference/evals-first-development.md` — eval delta lets you compare cost across optimizations
 - `reference/failure-modes-catalogue.md` — F12 (model output starvation), cost signal for diagnosis
-- Anthropic prompt caching docs: https://docs.anthropic.com/claude/docs/prompt-caching
+- Anthropic prompt caching docs: https://platform.claude.com/docs/en/prompt-caching
 - OpenAI structured outputs: https://platform.openai.com/docs/guides/structured-outputs

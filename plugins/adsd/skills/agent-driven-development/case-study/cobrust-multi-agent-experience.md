@@ -1,14 +1,14 @@
 ---
-case_study_id: cobrust-multi-agent-2026-04-30-to-2026-05-10
-project: Cobrust (Rust-implemented Python successor + AI-native compiler)
-duration: 11 days (~24 hours of intense agent work in final 36 hours)
-human_time: ~6 hours (estimated, mostly strategic decisions + 守闸)
+case_study_id: cobrust-multi-agent-2026-04-30-to-2026-05-12
+project: Cobrust (Rust-implemented Python successor + AI-native translation pipeline)
+duration: 12 days wall-clock (2026-04-30 → 2026-05-12); main narrative covers Days 1-10 with Day 11+12 appendix events
+human_time: ~6 hours (estimated, mostly strategic decisions + 守闸; expanded in Day 11+12 appendix)
 agent_time: ~80% of LOC produced
-final_state: 0.1.0-beta release plan, ~178 commits, 39 ADRs, 14 findings
+final_state: v0.1.0 + v0.1.0-beta + v0.1.0-beta.1 + v0.1.1 + v0.1.2 stable shipped + α Phase F.2 in flight; ~278 commits, 49 ADRs (0001..0048 + 0047a), 27 findings
 attribution_origin: review-claude window (third-party audit)
 ---
 
-# Case study: Cobrust 11-day multi-agent build-up
+# Case study: Cobrust 12-day multi-agent build-up
 
 This case study reports what worked and what failed in applying
 ADSD-flavor methodology to a real software project — Cobrust, a
@@ -29,10 +29,10 @@ record of what ADSD prevents and what it doesn't.
 - **Goal at start**: Phase E (M0..M14) — language core + tooling
 - **Goal at day 11**: 0.1.0-beta public release with end-to-end Python
   library translation demo
-- **Total commits**: ~178
-- **Total ADRs**: 39 (0001..0039 with some reservations)
-- **Total findings**: 14
-- **Cumulative tests**: 2,541 passed / verified at HEAD `6008634`
+- **Total commits**: ~278 (at HEAD `a2b3eab` 2026-05-12)
+- **Total ADRs**: 49 files (0001..0048 + 0047a sub-numbered)
+- **Total findings**: 27
+- **Cumulative tests**: 2,541 passed / verified at HEAD `6008634` (Day 8 anchor; current at HEAD ~2,611+, not re-baselined in case study)
 
 ## Topology actually used
 
@@ -373,10 +373,10 @@ N = 5).
 
 | Metric | Value |
 |---|---|
-| Total commits | ~178 |
-| ADRs landed | 39 |
-| Findings | 14 |
-| Tests passing at HEAD | 2,541 |
+| Total commits | ~278 (at HEAD `a2b3eab` 2026-05-12) |
+| ADRs landed | 49 (0001..0048 + 0047a) |
+| Findings | 27 |
+| Tests passing at Day-8 anchor | 2,541 (current ~2,611+ not re-baselined) |
 | Test failures pre-cleanup | 2 (msgpack DoS + pyo3 compile) |
 | P0 codegen bugs found via stress-test farm | 2 |
 | Hours of human work (estimated) | ~6 |

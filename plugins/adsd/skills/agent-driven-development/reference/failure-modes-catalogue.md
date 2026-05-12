@@ -119,10 +119,14 @@ in Cobrust's case — silently skips the gate.
 script-creation time. New milestones add ADRs/findings, but the script
 doesn't auto-extend.
 
-**Evidence**: Cobrust 11th-review §H2.
-`grep -rE "ADR-003[0-9]" docs/human/` returns **0 hits**.
-ADR-0030..0039 全部 not in zh+en doc trees. Triple-tree drift is
-systemic for all post-M14 work, but doc-coverage.sh is silent on it.
+**Evidence**: Cobrust 11th-review §H2 (anchored at HEAD ~`06df4b4`, 2026-05-10).
+At that time, `grep -rE "ADR-003[0-9]" docs/human/` returned **0 hits** —
+ADR-0030..0039 were not in zh+en doc trees. Triple-tree drift was
+systemic for all post-M14 work, but doc-coverage.sh was silent on it.
+(Note 2026-05-12: this specific grep has since changed as later doc
+sync added ADR-0030..0039 mentions, but the systemic pattern remains
+the F1.2 instance — the verification step was hardcoded against a
+specific milestone range and went stale.)
 
 **Recovery**: doc-coverage scripts must auto-discover scope via
 `ls docs/agent/adr/00*.md` patterns, not hardcode milestone lists.
@@ -1022,15 +1026,21 @@ attribution rather than schema invariants.
 
 ### Evidence
 
-Cobrust Day 11, ~14:00: P7 sonnet sub-agent, dispatched for a broad cleanup
-sprint, edited README sections that included review-claude's narrative §F
-findings summary. This is described in review-claude's README §A.NEW5
-"review-claude 13 own" item: "P7 sonnet boundary violation editing
-review-claude README".
+Cobrust Day 11 (2026-05-11), early afternoon: a P7 sonnet sub-agent
+dispatched for a broad cleanup sprint edited README narrative sections
+that review-claude considered its own authoring territory. The
+boundary violation was paraphrased in the review-claude session's
+own-up log (review-claude session 4bb35f43, paraphrased as: "P7 broad-
+cleanup spawn edited review-claude's narrative §F without scope-
+exclusion guard in dispatch prompt"). The literal handoff-README
+text content at that line had evolved over multiple turns, so the
+canonical citation is the pattern description, not a verbatim quote.
 
-The attribution policy was clearly stated in README §Attribution:
-"findings/ entries are review-claude originals — discovered_by field
-marks source." P7 had no enforcement signal preventing the edit.
+The attribution policy was stated in `review-claude-handoff/README.md`
+§"Attribution policy": "findings/ entries are review-claude originals —
+each file's `discovered_by:` frontmatter marks source." P7 had no
+machine-enforcement signal preventing the edit (no CODEOWNERS, no
+dispatch-prompt-level exclusion list).
 
 Note: This is a **candidate F18** because (a) it was observed in a single
 session, (b) the root-cause was partially ambiguous (was it P7 ignoring
@@ -1250,11 +1260,11 @@ This is F1 family because: the role is declared (review-claude is the auditor), 
 
 ### Evidence
 
-Cobrust 2026-05-11 evening: project owner asked claude-desktop to draft a Cobrust Studio handoff. Claude-desktop drafted ~2,800-line document signing it "— review-claude, 2026-05-11". A separate Claude Code session (the parallel one auditing Cobrust live, session ID `4bb35f43...`) was also active that day and had been signing its own artifacts "review-claude". The Studio handoff was claimed to be "synthesized from a multi-turn external review-claude session" — but the original session that performed those reviews did not write the handoff; claude-desktop did, citing the parallel session's prior work.
+Cobrust 2026-05-11 evening: project owner asked claude-desktop to draft a Cobrust Studio handoff. Claude-desktop drafted a multi-hundred-line document signing it "— review-claude, 2026-05-11". A separate Claude Code session (the parallel one auditing Cobrust live, session ID `4bb35f43...`) was also active that day and had been signing its own artifacts "review-claude". The Studio handoff cited an external "multi-turn review-claude session" — but the original session that performed those reviews did not write the handoff; claude-desktop did, citing the parallel session's prior work.
 
 Result: future readers of the Studio handoff cannot tell which review-claude session authored each claim, when, with what context. The handle "review-claude" became identity-overloaded between at least 2 concurrent sessions on the same day.
 
-Recovery in same session: appended §0.5.1 "Identity hygiene (F21)" + §12.8 "When in doubt, ask the parallel review-claude session" to the Studio handoff, prescribing session-ID-stamped attribution going forward.
+The cleanly-locatable artifact instances on disk: `review-claude-handoff/handoff-pack/dispatches/claude-desktop-integrated-handoff.md` (claude-desktop integration record) + 5+ findings under `review-claude-handoff/findings/` with `discovered_by:` frontmatter, and ADSD's own `docs/agent/conventions.md` §"Identity hygiene (F21 closure)" prescribing session-ID-stamped attribution going forward.
 
 ### Rule of thumb
 

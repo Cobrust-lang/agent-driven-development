@@ -147,7 +147,7 @@ When a finding is discovered (e.g. `lc100-i8-i64-nested-if`), the **same sprint 
 
 ## Concrete template
 
-`templates/eval-template.md`:
+Inline template (copy this into your project's `evals/<feature>/REPORT.md` — a dedicated `templates/eval-template.md` may be split out in a future ADSD release):
 
 ```
 ---
@@ -207,6 +207,5 @@ oracle: <Python lib | manual | differential against ...>
 - `SKILL.md` §"Wave + Tx commit tags" — eval delta is the 6th gate
 - `reference/failure-modes-catalogue.md` F19 (release install-not-tested) — eval-first is the systemic prevention
 - `reference/failure-modes-catalogue.md` F20 (constitution-vs-workflow) — eval-first IS the workflow that enforces "test-first" mandate
-- `templates/eval-template.md` — runnable template per feature
 - Anthropic: https://www.anthropic.com/engineering (search "evals")
 - OpenAI Evals: https://github.com/openai/evals

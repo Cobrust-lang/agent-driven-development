@@ -10,9 +10,9 @@
 ## What this is
 
 ADSD is **not a framework**. It's a documented working style that survived
-contact with reality: ~178 commits, ~2,611 tests, 43 ADRs, 19 findings, 21
-documented failure modes, 2 P0 codegen bugs caught via organic stress test,
-and a 0.1.1 release shipped publicly.
+contact with reality: ~278 commits, ~2,611 tests, 49 ADRs (0001..0048 + 0047a),
+27 findings, 24 documented failure modes, 2 P0 codegen bugs caught via organic
+stress test, and v0.1.2 stable shipped publicly + α Phase F.2 in flight.
 
 ADSD codifies the discipline that kept the multi-agent project coherent:
 ADRs as decision capture, findings as negative-result memory, bilingual
@@ -74,14 +74,14 @@ agent-driven-development/
 ├── .claude-plugin/
 │   └── marketplace.json                       # Self-hosted single-plugin marketplace catalog
 ├── plugins/
-│   └── agent-driven-development/              # Plugin root (matches marketplace.json source)
+│   └── adsd/                                  # Plugin root (matches marketplace.json source)
 │       ├── .claude-plugin/
 │       │   └── plugin.json                    # Plugin manifest
 │       └── skills/
 │           └── agent-driven-development/      # Skill — auto-discovered by Claude Code
 │               ├── SKILL.md                   # Main methodology document (~36 KB)
 │               ├── reference/
-│               │   └── failure-modes-catalogue.md  # F1-F21 anti-patterns with empirical evidence
+│               │   └── failure-modes-catalogue.md  # F1-F24 anti-patterns with empirical evidence
 │               ├── case-study/
 │               │   └── cobrust-multi-agent-experience.md  # The founding case study (N=1)
 │               └── templates/
@@ -134,7 +134,7 @@ The script also verifies reference files have YAML frontmatter and ADR files are
 
 ADSD was extracted from the [Cobrust](https://github.com/Cobrust-lang/cobrust)
 project, a Rust-implemented Python successor with an AI-native compiler.
-Cobrust shipped its `0.1.0` stable tag on 2026-05-10 after a 10-day intensive run (first commit 2026-04-30 → v0.1.0 tag 2026-05-10)
+Cobrust shipped its `0.1.0-beta` tag on 2026-05-10 and `0.1.0` stable on 2026-05-11, after an 11-day intensive run (first commit 2026-04-30 → v0.1.0 stable tag 2026-05-11; v0.1.2 + α Phase F.2 followed)
 with multiple parallel Claude agents (Opus 4.7 and Sonnet 4.6) coordinated
 via the methodology you'll find in [`SKILL.md`](./plugins/adsd/skills/agent-driven-development/SKILL.md).
 

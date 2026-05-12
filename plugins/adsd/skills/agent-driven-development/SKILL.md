@@ -895,9 +895,6 @@ Everything else is adaptable.
 
 ### Originals (distilled from Cobrust 12-day intensive run)
 
-- Part 1 Topology details: `reference/role-topology.md`
-- Part 2 Two-phase dispatch deep dive: `reference/two-phase-dispatch.md`
-- Part 3 Snapshot discipline: `reference/snapshot-discipline.md`
 - Part 6 Full failure-modes catalogue: `reference/failure-modes-catalogue.md`
 - Templates: `templates/*.md`
 - Cobrust case study: `case-study/cobrust-multi-agent-experience.md`
@@ -917,8 +914,8 @@ These five represent **5 of 12 v1.2.0 gap candidates** identified by review-clau
 ## Origin & lineage
 
 This skill is distilled from the Cobrust project (2026-04-30 to
-2026-05-10) — a Rust-implemented Python successor with AI-native
-compiler. ~278 commits over 12 wall-clock days, 48+ ADRs, 24+ findings, 2 stress-test farms,
+2026-05-12) — a Rust-implemented Python successor with an LLM-driven
+translation pipeline. ~278 commits over 12 wall-clock days, 49 ADRs (0001..0048 + 0047a), 27 findings, 2 stress-test farms,
 4 parallel-agent topology stress-tested at 4-way max. Patterns
 documented here passed the test of "did we hit this in production
 and did the fix work?".
