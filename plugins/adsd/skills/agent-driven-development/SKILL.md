@@ -1,6 +1,6 @@
 ---
 name: agent-driven-development
-description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks). Provides 4-tier role topology (P10 CTO / P9 tech lead / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), F1–F18 failure-modes catalogue, AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md and case-study/cobrust-multi-agent-experience.md (N=1) + case-study/cobrust-studio-experience.md (N=2, 2-day MVP applying the methodology under acceleration) on demand.
+description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks, tag→audit→patch release pattern, recursive enforcement-script closure, continuous persona testing as dev-loop, persona-simulation closed-feedback-loop epistemic risk). Provides 4-tier role topology (P10 CTO / P9 tech lead / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), F1–F28 failure-modes catalogue (Cobrust N=1 surfaced F1.0-F1.2 + F2-F24; Cobrust Studio N=2 surfaced F1.3, F1.4, F25-F28), AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md and case-study/cobrust-multi-agent-experience.md (N=1) + case-study/cobrust-studio-experience.md (N=2, 2-day MVP applying the methodology under acceleration) on demand.
 ---
 
 # Agent-Driven Software Development (ADSD)
@@ -936,6 +936,16 @@ The methodology survived contact with a new codebase under
 acceleration, surfaced 2 F1.0 catches and 2 F19/F20/F21 catches as
 empirical evidence the v1.2.0/v1.2.1 catalogue additions are
 load-bearing.
+
+**Catalogue v1.2.6** (2026-05-12): six Studio-surfaced patterns
+promoted from case-study learnings to first-class catalogue entries
+— F25 (tag → audit → patch as a release pattern under AI velocity),
+F26 (recursive enforcement-script closure required), F27 (continuous
+persona testing as dev-loop primitive), F28 (persona-simulation-as-
+validation epistemic risk / closed-feedback-loop), and two new F1
+Sediment Family sub-forms: F1.3 (local-vs-CI gate definition drift)
++ F1.4 (doc-coverage README-vs-release-tag drift). See `reference/
+failure-modes-catalogue.md` v1.2.6.
 
 Specific Cobrust artifacts that inspired each Part:
 - Part 1 Topology: `findings/multi-agent-cobrust-topology.md`
