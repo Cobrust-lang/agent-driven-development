@@ -1,6 +1,6 @@
 ---
 name: agent-driven-development
-description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks, tag→audit→patch release pattern, recursive enforcement-script closure, continuous persona testing as dev-loop, persona-simulation closed-feedback-loop epistemic risk). Provides 4-tier role topology (P10 CTO / P9 tech lead / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), F1–F28 failure-modes catalogue (Cobrust N=1 surfaced F1.0-F1.2 + F2-F24; Cobrust Studio N=2 surfaced F1.3, F1.4, F25-F28), AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md and case-study/cobrust-multi-agent-experience.md (N=1) + case-study/cobrust-studio-experience.md (N=2, 2-day MVP applying the methodology under acceleration) on demand.
+description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P8/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks). Provides 5-tier role topology (P10 CTO / P9 tech lead / P8 domain expert / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), snapshot-first documentation discipline, staged mocked-to-live progression guidance, 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), F1–F30 failure-modes catalogue, AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md and case-study/cobrust-multi-agent-experience.md on demand.
 ---
 
 # Agent-Driven Software Development (ADSD)
@@ -8,11 +8,9 @@ description: ADSD methodology for managing multi-agent software projects where A
 > A methodology for managing software projects where the bulk of the work
 > is done by AI agents under human strategic direction.
 >
-> **Distilled from**: Cobrust project (N=1), **12 days wall-clock (2026-04-30 → 2026-05-12)**, ~278 commits, 48+ ADRs, 24+ findings, 2 P0 codegen bugs found via organic stress test, v0.1.0 + v0.1.1 + v0.1.2 shipped + α Phase F.2 in flight.
+> **Distilled from**: Cobrust project, **12 days wall-clock (2026-04-30 → 2026-05-12)**, ~278 commits, 48+ ADRs, 24+ findings, 2 P0 codegen bugs found via organic stress test, v0.1.0 + v0.1.1 + v0.1.2 shipped + α Phase F.2 in flight.
 >
-> **N=2 validated against**: Cobrust Studio (2026-05-11 → 2026-05-12), 125 commits over ~21 hours, 6 ADRs, 4 findings, v0.1.0 broken → v0.1.1 broken → v0.1.2 usable patch dance documented as the canonical "tag → audit → patch" release pattern. First F20 systemic closure in a non-origin project. See `case-study/cobrust-studio-experience.md`.
->
-> **Status**: extracted 2026-05-10; N=2 validated 2026-05-12. Apply as-is or adapt; this is
+> **Status**: extracted 2026-05-10. Apply as-is or adapt; this is
 > battle-tested but not orthodoxy.
 
 ---
@@ -54,8 +52,19 @@ timetable, hand-wave verification claims.
 
 ## Part 1 — Roles & Topology
 
-ADSD uses a **4-tier role hierarchy** plus an external review track.
+ADSD uses a **5-tier role hierarchy** plus an external review track.
 Roles map to model size + autonomy budget, not to humans.
+
+### Why P8 became a first-class role
+
+As multi-agent projects grow beyond a single stream of work, P9 is easily overloaded if domain refinement stays informal. Once one lead agent is simultaneously doing milestone decomposition, cross-workstream coordination, domain-boundary design, acceptance ownership, and close-out policing, execution quality falls because task packages arrive underspecified.
+
+The correction is to make **P8 domain ownership explicit** instead of implicit:
+- `P9` owns delivery orchestration across workstreams.
+- `P8` owns domain-boundary refinement and acceptance inside one workstream.
+- `P7` executes against a bounded package rather than improvising architecture.
+
+Treat this as a strong default once a project has multiple active workstreams, non-trivial acceptance boundaries, or a P9 that is starting to absorb both delivery orchestration and domain-detail ownership. If the project is still tiny, one agent can temporarily wear both P9 and P8 hats, but the handoff responsibilities should still be named separately so the split can become explicit later.
 
 ### P10 — CTO / Architect (human-led, strategic)
 
@@ -80,10 +89,10 @@ milestone. Most turns CTO is just merging PRs and unblocking P9.
 
 **Responsibility**:
 - Take CTO's strategic anchor → decompose into ≤ 5 sub-tasks
-- Write **Task Prompts** for P7 sub-agents (the "六要素": working dir +
-  required reads + mission + deliverables + gates + report format)
+- Sequence workstreams and delivery gates
+- Write **Task Prompts** for downstream agents
 - Run **Two-phase dispatch SOP** (see Part 2)
-- Receive [P7-COMPLETION] reports → verify gates → merge or reject
+- Receive completion reports → verify gates → merge or reject
 
 **Model**: Opus or top-tier sonnet. P9 is reasoning-heavy.
 
@@ -92,14 +101,31 @@ wall-clock.
 
 **Trigger words**: "tech-lead", "拆这个需求", "manage agent team".
 
+### P8 — Domain Expert / Staff Engineer (agent-led, workstream owner)
+
+**Responsibility**:
+- Refine one workstream's domain design before coding starts
+- Define module and contract boundaries inside that workstream
+- Shape acceptance criteria and the close-out checklist
+- Package tasks so P7 can execute without changing architecture on the fly
+- Review implementation completeness before work returns to P9
+
+**Model**: Opus or top-tier sonnet. P8 is domain-detail heavy rather than milestone-orchestration heavy.
+
+**Cadence**: 1-3 P8 workstreams can sit under one P9. Each P8 sprint is usually 30-120 min of refinement plus close-out review.
+
+**Trigger words**: "domain owner", "staff engineer", "refine this workstream", "shape acceptance", "package implementation".
+
 ### P7 — Senior Engineer (agent-led, executor)
 
 **Responsibility**:
 - Receive Task Prompt → first action `cd && pwd && git branch`
   (enforce working-dir discipline)
 - Read required-reads list before coding (enforce context loading)
-- Implement deliverables → run gates locally → report
-  [P7-COMPLETION]
+- Implement the scoped package defined by P9/P8
+- Start with tests or evals whenever the package changes a public behavior,
+  contract, or regression boundary
+- Run gates locally → report [P7-COMPLETION]
 
 **Model**: Sonnet for mechanical fixes / well-defined tasks; Opus for
 complex codegen / novel design.
@@ -393,7 +419,7 @@ audit topology is non-optional for high-stakes gates.
 ### Two-phase dispatch SOP
 
 The single most important pattern in ADSD. Used for any sprint where
-a P9 sub-agent will produce code based on a CTO-level decision.
+a downstream agent will produce code based on a CTO-level decision.
 
 ```
 Phase 1 — CTO solo (30-60 min):
@@ -403,28 +429,42 @@ Phase 1 — CTO solo (30-60 min):
     - Decision: which one + why
     - Done means: falsifiable success criteria
     - Cross-references: prior ADRs, findings
+  • If the capability is user-visible or contract-bearing, place the failing
+    eval/test skeleton now so the downstream implementation starts from a
+    visible proof obligation
   • Commit Phase 1 to main with `docs(adr): land ADR-NNNN — <title> (CTO spike)`
-  • Place tests-corpus skeleton if needed (empty test fns with TODO bodies)
 
-Phase 2 — P9 sub-agent (60-180 min, background):
-  • Reads ADR (Phase 1 commit) + related code
+Phase 2 — P9/P8 refinement (30-120 min):
+  • P9 sequences the sprint and names the delivery gate
+  • P8 defines the workstream package: boundaries, acceptance, required reads,
+    and the exact tests/evals that must go green
+  • If test-first is part of the contract, the package explicitly tells P7
+    what failing proof should exist before implementation starts
+
+Phase 3 — P7 implementation (60-180 min, background):
+  • Reads ADR + package + related code
+  • Lands tests/evals first when required by the package
   • Implements decision
-  • Reports [P9-COMPLETION] with branch + final SHA + gate verdicts
+  • Reports [P7-COMPLETION] with branch + final SHA + gate verdicts
+  • P8 checks domain completeness before P9 accepts delivery
   • CTO 守闸: smoke check + cold rebuild + 5-gate + merge --no-ff
 ```
 
-**Why two phases**:
-- ADR is a strategic decision. Sub-agent shouldn't make it.
-- ADR landed in Phase 1 = stable anchor for Phase 2 to read.
-- If Phase 2 P9 sub-agent times out / drifts, Phase 1 ADR is still
-  preserved evidence of the strategic intent.
-- Avoids the classic failure mode "P9 spent 2 hours implementing a
-  scope I never approved".
+**Why this staged dispatch works**:
+- ADR is a strategic decision. Downstream agents shouldn't invent it.
+- P9 and P8 have different jobs; separating delivery orchestration from
+  domain-boundary packaging reduces overloaded handoffs.
+- A visible failing eval/test before implementation is the cleanest way to
+  stop acceptance from drifting during execution.
+- If implementation times out or drifts, the ADR and the packaged acceptance
+  still preserve the approved intent.
+- Avoids the classic failure mode "the executor spent 2 hours implementing a
+  scope nobody actually packaged or approved".
 
-**Failure mode**: skipping Phase 1, dispatching directly. Then sub-agent
-either over-scopes (fixing things you didn't want fixed) or under-scopes
-(missing the actual decision). 80% of "agent went off the rails"
-stories trace to skipped Phase 1.
+**Failure modes**:
+- Skip Phase 1 and the sprint can over-scope or under-scope.
+- Skip P8 packaging and P7 often improvises architecture under delivery pressure.
+- Claim test-first in principle but never dispatch a failing proof, and the rule collapses into aspiration.
 
 ### Worktree-per-sprint pattern
 
@@ -549,6 +589,10 @@ related: [<other findings>]
 **Snapshot** — *Compressed current state*. Updated end-of-turn. Source
 of truth for future agents loaded post-compaction.
 
+Snapshot is the **canonical state document**. Other top-level docs such as
+`README`, operator runbooks, and agent guidance files are projection layers.
+When they disagree, snapshot wins until the projections are synchronized.
+
 Schema invariants (use frontmatter to enforce):
 ```yaml
 schema_invariant: |
@@ -560,6 +604,18 @@ schema_invariant: |
 
 These invariants prevent the most common failure mode: "重写新段、忘删旧段"
 (write new section, forget to delete old).
+
+### Snapshot-first close-out
+
+For documentation-affecting work, close-out order matters:
+1. Update snapshot first.
+2. Update every projection document that depends on it.
+3. Run the documentation verification surface.
+4. Only then claim the work closed.
+
+This turns documentation truthfulness into a deliverable rather than a
+best-effort cleanup task. A repo whose README is more current than its
+snapshot is upside down.
 
 ### Triple-tree doc (optional)
 
@@ -647,6 +703,29 @@ marketing-overreach we had to walk back.
 ---
 
 ## Part 5 — Strategic Layer
+
+### Staged capability progression
+
+When building agentic products, avoid jumping straight from mockups to
+full live operation. A cleaner path is to stage reality in deliberate
+cuts, with each cut proving one new class of truth.
+
+One example progression is:
+
+1. **Mocked orchestrator baseline** — contracts, persistence, and UI shells
+   can move before real runtime integration exists.
+2. **Local read loop** — the product can read and render locally produced run
+   state without pretending it owns execution yet.
+3. **HTTP transport cutover** — replace mocked reads with a real process
+   boundary while keeping the execution model stable.
+4. **Live local server loop** — prove the operator can drive the system
+   through the actual local service surface.
+5. **Local run production loop** — prove the system can produce and then
+   observe real local runs end-to-end.
+
+Do not treat this exact sequence as universal law. The reusable lesson is
+that transport, runtime, UI, and production semantics should be introduced
+in staged cuts with explicit proof obligations, rather than all at once.
 
 ### Strategic vs tactical review cadence
 
@@ -864,9 +943,8 @@ See `templates/` folder:
 - `templates/dispatch-prompt-p7.md`
 - `templates/handoff-cover-letter.md`
 
-See `case-study/` folder for ADSD case-study reports:
-- `case-study/cobrust-multi-agent-experience.md` — **N=1** Cobrust language project (12-day multi-agent build; ~278 commits; methodology distilled from this run)
-- `case-study/cobrust-studio-experience.md` — **N=2** Cobrust Studio (2-day MVP applied the codified methodology; 125 commits; first F20 closure in a non-origin project; first "tag → audit → patch" release pattern documentation)
+See `case-study/` folder for Cobrust experience report:
+- `case-study/cobrust-multi-agent-experience.md`
 
 ---
 
@@ -900,8 +978,7 @@ Everything else is adaptable.
 
 - Part 6 Full failure-modes catalogue: `reference/failure-modes-catalogue.md`
 - Templates: `templates/*.md`
-- Cobrust case study (N=1, language project, 12-day multi-agent build): `case-study/cobrust-multi-agent-experience.md`
-- Cobrust Studio case study (N=2, project-management console, 2-day MVP — first F20 closure in a non-origin project; first "tag → audit → patch" release pattern documentation): `case-study/cobrust-studio-experience.md`
+- Cobrust case study: `case-study/cobrust-multi-agent-experience.md`
 
 ### Cross-pollination from Anthropic + OpenAI public guidance (v1.2.0)
 
@@ -923,29 +1000,6 @@ translation pipeline. ~278 commits over 12 wall-clock days, 49 ADRs (0001..0048 
 4 parallel-agent topology stress-tested at 4-way max. Patterns
 documented here passed the test of "did we hit this in production
 and did the fix work?".
-
-**N=2 validation** (2026-05-11 → 2026-05-12): Cobrust Studio — a
-self-hosted web console for AI agent project management — applied
-the codified methodology as input rather than co-evolving with it.
-125 commits over ~21 hours wall-clock, 6 ADRs, 4 findings, 3 tags
-(v0.1.0 broken / v0.1.1 broken / v0.1.2 usable). First F20 systemic
-closure in a non-origin project; first documented "tag → audit →
-patch" release pattern; first "recursive F20 closure" (enforcement
-script auditing itself). See `case-study/cobrust-studio-experience.md`.
-The methodology survived contact with a new codebase under
-acceleration, surfaced 2 F1.0 catches and 2 F19/F20/F21 catches as
-empirical evidence the v1.2.0/v1.2.1 catalogue additions are
-load-bearing.
-
-**Catalogue v1.2.6** (2026-05-12): six Studio-surfaced patterns
-promoted from case-study learnings to first-class catalogue entries
-— F25 (tag → audit → patch as a release pattern under AI velocity),
-F26 (recursive enforcement-script closure required), F27 (continuous
-persona testing as dev-loop primitive), F28 (persona-simulation-as-
-validation epistemic risk / closed-feedback-loop), and two new F1
-Sediment Family sub-forms: F1.3 (local-vs-CI gate definition drift)
-+ F1.4 (doc-coverage README-vs-release-tag drift). See `reference/
-failure-modes-catalogue.md` v1.2.6.
 
 Specific Cobrust artifacts that inspired each Part:
 - Part 1 Topology: `findings/multi-agent-cobrust-topology.md`

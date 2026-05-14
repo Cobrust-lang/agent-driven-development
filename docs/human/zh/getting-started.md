@@ -19,7 +19,7 @@ ADSD 是从 Cobrust 项目 12 天密集开发实战 (2026-04-30 → 2026-05-12, 
 2. **失败捕获** — 每次"翻车 / 意外 / 死胡同"都写 Finding (负向结果)
 3. **派活有谱** — D0-D5 难度矩阵 + dev/test pair 的 TDD 派活协议
 
-加上**双语文档强制** + **wave + Tx 原子提交** + **F1-F21 反模式目录** + **release-readiness 上线前独立验证**, 就是 ADSD 全貌.
+加上**双语文档强制** + **wave + Tx 原子提交** + **F1-F30 反模式目录** + **release-readiness 上线前独立验证**, 就是 ADSD 全貌.
 
 详细架构: [`concept-map.md`](./concept-map.md)
 
@@ -32,7 +32,7 @@ ADSD 是从 Cobrust 项目 12 天密集开发实战 (2026-04-30 → 2026-05-12, 
 /plugin install adsd@adsd
 ```
 
-装完后, 命中"multi-agent dispatch / ADR drafting / F1-F21 failure mode"等关键词时, Claude 会自动激活 ADSD skill.
+装完后, 命中"multi-agent dispatch / ADR drafting / F1-F30 failure mode"等关键词时, Claude 会自动激活 ADSD skill.
 
 ### 方式 2 — 个人 skill 目录 (回退方案)
 
@@ -128,7 +128,7 @@ REPORT FORMAT: [P7-COMPLETION] with verification block (paste raw cargo test out
 ## 下一步
 
 - 读 [`concept-map.md`](./concept-map.md) 看 ADSD 完整概念图
-- 撞坑了写 finding, 不要藏起来. F1-F24 catalogue 在 [`reference/failure-modes-catalogue.md`](https://github.com/Cobrust-lang/agent-driven-development/blob/main/plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md), 你可能撞上同一个
+- 撞坑了写 finding, 不要藏起来. F1-F30 catalogue 在 [`reference/failure-modes-catalogue.md`](https://github.com/Cobrust-lang/agent-driven-development/blob/main/plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md), 你可能撞上同一个
 
 ## 常见问题
 

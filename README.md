@@ -46,7 +46,7 @@ simple workflows.
 
 After install, invoke via `/agent-driven-development` or let Claude pick it
 automatically based on context — the description-triggered activation fires
-for multi-agent dispatch planning, ADR drafting, F1–F18 failure-mode triage,
+for multi-agent dispatch planning, ADR drafting, F1–F30 failure-mode triage,
 pre-release audit team design, and similar prompts.
 
 ### As a personal skill (fallback, no plugin system)
@@ -81,7 +81,7 @@ agent-driven-development/
 │           └── agent-driven-development/      # Skill — auto-discovered by Claude Code
 │               ├── SKILL.md                   # Main methodology document (~36 KB)
 │               ├── reference/
-│               │   └── failure-modes-catalogue.md  # F1-F24 anti-patterns with empirical evidence
+│               │   └── failure-modes-catalogue.md  # F1-F30 anti-patterns with empirical evidence
 │               ├── case-study/
 │               │   └── cobrust-multi-agent-experience.md  # The founding case study (N=1)
 │               └── templates/
@@ -100,7 +100,7 @@ agent-driven-development/
 ## Quick start (after install)
 
 1. Read [`SKILL.md`](./plugins/adsd/skills/agent-driven-development/SKILL.md) for the full methodology (~36 KB, 30 min).
-2. Read [`reference/failure-modes-catalogue.md`](./plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md) for the F1–F21 anti-patterns you'll likely hit. Don't re-derive them.
+2. Read [`reference/failure-modes-catalogue.md`](./plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md) for the F1–F30 anti-patterns you'll likely hit. Don't re-derive them.
 3. Read [`case-study/cobrust-multi-agent-experience.md`](./plugins/adsd/skills/agent-driven-development/case-study/cobrust-multi-agent-experience.md) to see ADSD applied in practice (warts and all).
 4. Copy the relevant template from [`templates/`](./plugins/adsd/skills/agent-driven-development/templates/) into your project's `docs/agent/` tree.
 5. Start writing ADRs as decisions actually happen — not speculatively.
@@ -151,7 +151,7 @@ project so the methodology can be tested outside its founding context.
 File an issue describing your project if interested.
 
 ADSD is **battle-tested but not orthodoxy**. Adapt it. If you find a
-failure mode we missed, propose F22+ via a PR to
+failure mode we missed, propose F31+ via a PR to
 [`reference/failure-modes-catalogue.md`](./plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md).
 
 ## Contributing
