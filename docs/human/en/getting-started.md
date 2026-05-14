@@ -19,7 +19,7 @@ ADSD is the multi-agent working discipline distilled from 12 days of intensive C
 2. **Failure capture** — every "this broke / surprised / dead-ended" becomes a Finding (negative result)
 3. **Dispatch discipline** — D0-D5 difficulty matrix + dev/test pair TDD protocol
 
-Plus **bilingual docs mandate** + **wave + Tx atomic commits** + **F1-F21 anti-pattern catalogue** + **release-readiness pre-publish independent verification**. That's the full picture.
+Plus **bilingual docs mandate** + **wave + Tx atomic commits** + **F1-F30 anti-pattern catalogue** + **release-readiness pre-publish independent verification**. That's the full picture.
 
 Detailed architecture: [`concept-map.md`](./concept-map.md)
 
@@ -32,7 +32,7 @@ Detailed architecture: [`concept-map.md`](./concept-map.md)
 /plugin install adsd@adsd
 ```
 
-Once installed, when a prompt mentions "multi-agent dispatch / ADR drafting / F1-F21 failure modes" etc., Claude auto-activates the ADSD skill.
+Once installed, when a prompt mentions "multi-agent dispatch / ADR drafting / F1-F30 failure modes" etc., Claude auto-activates the ADSD skill.
 
 ### Method 2 — Personal skill directory (fallback)
 
@@ -128,7 +128,7 @@ If Claude auto-references ADSD's `reference/` files, you installed correctly. If
 ## Next steps
 
 - Read [`concept-map.md`](./concept-map.md) for the complete ADSD concept diagram
-- When you hit a wall, write a finding. Don't hide it. F1-F24 catalogue is at [`reference/failure-modes-catalogue.md`](https://github.com/Cobrust-lang/agent-driven-development/blob/main/plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md); you may have hit the same one
+- When you hit a wall, write a finding. Don't hide it. F1-F30 catalogue is at [`reference/failure-modes-catalogue.md`](https://github.com/Cobrust-lang/agent-driven-development/blob/main/plugins/adsd/skills/agent-driven-development/reference/failure-modes-catalogue.md); you may have hit the same one
 
 ## FAQ
 

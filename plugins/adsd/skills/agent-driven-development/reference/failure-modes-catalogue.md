@@ -1,6 +1,6 @@
 ---
-name: ADSD failure modes catalogue (F1-F29)
-description: Concrete failure modes encountered in real ADSD projects with empirical evidence, root cause analysis, recovery patterns, and prevention mechanisms. F1 Sediment Family (9 sub-forms) + F2-F29 individual entries. Cobrust N=1 surfaced F1.0-F1.2 + F2-F24; Cobrust Studio N=2 (M0-M5) surfaced F1.3, F1.4, F25-F28; Cobrust Studio M6/M7 cycle surfaced F1.5 (candidate) + F29 (candidate). Add F30+ as your project hits new failure modes.
+name: ADSD failure modes catalogue (F1-F30)
+description: Concrete failure modes encountered in real ADSD projects with empirical evidence, root cause analysis, recovery patterns, and prevention mechanisms. F1 Sediment Family (9 sub-forms) + F2-F30 individual entries. Cobrust N=1 surfaced F1.0-F1.2 + F2-F24; Cobrust Studio N=2 (M0-M5) surfaced F1.3, F1.4, F25-F28; Cobrust Studio M6/M7 cycle surfaced F1.5 (candidate) + F29 (candidate). Add F31+ as your project hits new failure modes.
 type: reference
 version: 1.2.7
 date: 2026-05-12
@@ -2516,6 +2516,69 @@ declared targets from shipping.
 
 ---
 
+## F30 — Projection docs outrank the canonical snapshot (F1 Sediment Family, doc-authority sub-form)
+
+> **F1 sub-form, confirmed.** The repo declares a canonical state record, but day-to-day editing happens in the more visible projection docs (`README`, agent guidance, operator docs). The projections drift ahead of the canonical source, so future agents inherit a persuasive but false narrative.
+
+### Definition
+
+A project has one document intended to be the canonical statement of current repo state, phase, verification surface, or next target. Other docs are projection layers derived from it. In practice, contributors update the projection docs first because they are easier to notice or more user-facing. The canonical doc lags, and the declared authority order silently inverts.
+
+### Symptoms
+
+- `README` says the project is in phase N while snapshot still says phase N-1
+- Agent guidance lists commands or constraints not yet reflected in the canonical state doc
+- A close-out report claims docs are synced, but only the projection docs changed
+- Future agents cold-start from the stale canonical doc and make wrong dispatch or review decisions
+
+### Root cause
+
+Two compounding patterns:
+
+1. **Visibility bias**: people naturally update the doc they are already reading (`README`, CLAUDE-like guidance, release notes), not the denser state ledger.
+2. **Truthfulness is declared, not operationalized**: the project says "snapshot is canonical" but does not enforce update order or require a synchronized close-out set.
+
+This is an F1-family pattern because the authority rule exists only as prose until the workflow makes it executable.
+
+### Evidence
+
+ADD Studio methodology codified the countermeasure explicitly after repeated emphasis during Wave 1 → Wave 2 close-out:
+- `docs/agent/snapshot.md` named as canonical repo-state record
+- `README.md` and `CLAUDE.md` named as projection layers
+- close-out rule: update snapshot first, then synchronize the affected projections before the work is considered done
+
+This is important because the repo's current phase, verification commands, and next target all appear in multiple top-level docs. Without a canonical-first rule, the most visible doc would naturally outrank the truth source.
+
+### Rule of thumb
+
+> **If a project has a canonical state document, every projection doc must be downstream of it in both authority and update order.**
+>
+> Close-out sequence:
+> 1. Update canonical snapshot/state ledger
+> 2. Update every dependent projection doc
+> 3. Run doc verification
+> 4. Only then report completion
+
+### Recovery
+
+When F30 fires:
+
+1. Stop editing projection docs in isolation.
+2. Reconcile the canonical state doc against repo reality first.
+3. Diff every named projection doc against the canonical state and remove contradictions.
+4. Add an explicit close-out checklist entry so future sprints cannot skip the sync.
+
+### Prevention going forward
+
+For any ADSD project that uses ADRs/findings/snapshot discipline:
+
+1. Name the canonical doc explicitly in both the snapshot template and the top-level guidance docs.
+2. Add a close-out rule that starts with the canonical doc and ends only when projections match.
+3. Make documentation verification part of the required gate surface for doc-affecting work.
+4. Treat "docs truthfulness" as a deliverable owned during dispatch, not as polish after the merge.
+
+---
+
 ## Catalogue maintenance
 
 This catalogue is alive — add to it as you encounter new failure modes.
@@ -2526,7 +2589,7 @@ When adding:
 3. Evidence section MUST cite a specific case-study artifact (not
    "I think we hit this once")
 4. Submit via PR; reviewer should verify the failure mode is
-   distinct from existing F1-F29 (and from existing F1 Sediment
+   distinct from existing F1-F30 (and from existing F1 Sediment
    Family sub-forms F1.0-F1.5, F16, F17, F18, F19, F20, F21)
 
 If a failure mode becomes obsolete (e.g. tool now prevents it

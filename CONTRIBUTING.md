@@ -7,7 +7,7 @@ findings, atomic commits, doc-coverage on the same change.
 
 | Type | Where it lands | Bar |
 |---|---|---|
-| New failure mode (F22+) | `reference/failure-modes-catalogue.md` | At least one concrete empirical instance with citation |
+| New failure mode (F31+) | `reference/failure-modes-catalogue.md` | At least one concrete empirical instance with citation |
 | Case study extension | `case-study/<your-project>-multi-agent-experience.md` | Real project, real outcomes, dated entries |
 | Template improvement | `templates/<name>.md` | Backwards-compatible OR new template |
 | Section refinement in SKILL.md | `SKILL.md` | Cite at least one project where this refinement was tested |
@@ -16,7 +16,7 @@ findings, atomic commits, doc-coverage on the same change.
 ## What we will not merge
 
 - Speculative methodology rules without an empirical instance
-- F-pattern proposals that are restatements of existing F1-F21
+- F-pattern proposals that are restatements of existing F1-F30
 - "Tone" rewrites that lose specific examples or evidence
 - Removal of attribution (e.g. dropping "discovered_by" frontmatter)
 
@@ -28,7 +28,7 @@ findings, atomic commits, doc-coverage on the same change.
    doc + code (if any) + cross-references in the same commit.
 3. **For F-pattern additions**: include `## FN — Title`, `**Signal**`,
    `**Root cause**`, `**Evidence**` (cite project + commit SHA or
-   equivalent), `**Rule of thumb**`. Mirror the existing F1-F21 entry
+   equivalent), `**Rule of thumb**`. Mirror the existing F1-F30 entry
    shape.
 4. **For case studies**: use day-by-day or week-by-week structure. Mark
    counterfactuals (`What would have failed without this discipline:`).
