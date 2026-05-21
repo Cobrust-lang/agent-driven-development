@@ -17,7 +17,7 @@ sprints (2026-05-19/20), submitted as a follow-up to PR #1 (F31-F40 batch).
 |------------|-----------------|--------------|---------------|
 | **F41** | F38 — source-surface leakage of codegen primitive | `46c0946` | 2026-05-19/20 |
 | **F42** | F39 — device-name leakage in commits + repo files | `d012df9` | 2026-05-19 |
-| **F43** | F40 — single-point-of-failure heavy-build host | `d012df9` | 2026-05-19/20 |
+| **F43** | F40 — single-point-of-failure heavy-build host | `9cb84b5` | 2026-05-19/20 |
 
 ## Finding summaries
 

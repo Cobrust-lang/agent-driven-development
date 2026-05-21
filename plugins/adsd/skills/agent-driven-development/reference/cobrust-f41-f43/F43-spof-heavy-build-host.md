@@ -7,7 +7,7 @@ status: ratified_2026-05-20
 empirical_project: Cobrust Phase J wave-2 sprint (2026-05-19/20)
 cobrust_local_id: F40 (f40-single-point-of-failure-heavy-build-host.md)
 date_ratified: 2026-05-20
-cobrust_sha: d012df9
+cobrust_sha: 9cb84b5
 resolution: DG abandonment policy — all heavy gates route to GH Actions CI
 ---
 
@@ -67,9 +67,10 @@ until diagnosed — wasting agent time on root-cause analysis of an infra issue.
   unblock the session but was ad-hoc — no policy existed for this fallback.
 - Host degradation went unflagged for the full session.
 
-**Archaeology SHA:** `d012df9` — the commit where the DG abandonment policy was
-first documented in CI (renaming `workstation-gates.yml` → `self-hosted-gates.yml`
-was part of the same F39/F40 cleanup session).
+**Archaeology SHA:** `9cb84b5` — the commit where the DG self-hosted-runner
+abandonment policy was explicitly documented ("Mac single-crate + CI authoritative").
+Related: `d012df9` renamed `workstation-gates.yml` → `self-hosted-gates.yml` in the
+same cleanup session.
 
 **Quantified cost:** 8+ hours of sprint time during which no heavy full-workspace
 verification was possible; multiple sub-agent dispatches consumed tool budget on
