@@ -1,20 +1,23 @@
 ---
 doc_kind: methodology-deltas
 batch_id: cobrust-f44-f70
-title: "Methodology deltas since the f41-f43 ADSD snapshot — topology / dispatch / audit refinements forced by the Cobrust v0.7.0 multi-agent run"
-date: 2026-05-29
-empirical_project: Cobrust v0.6.0 → v0.7.0 multi-agent run (2026-05-22 → 2026-05-29)
+title: "Methodology deltas since the f41-f43 ADSD snapshot — topology / dispatch / audit refinements forced by the Cobrust v0.7.0 multi-agent run + the 2026-05-29/30 dynamic-Workflow session"
+date: 2026-05-30
+empirical_project: Cobrust v0.6.0 → v0.7.0 multi-agent run (2026-05-22 → 2026-05-29) + the 2026-05-29/30 dynamic-Workflow session (Delta 8 close + Delta 9)
 prior_snapshot: cobrust-f41-f43 (catalogue through F43; PR follow-up to F31-F40)
 status: methodology-evolution (NOT findings — these refine ADSD's own dispatch/audit discipline)
-related: [F41, F42, F43, F44, F64, finding:f35-sibling-commit-msg-vs-diff-drift]
+related: [F41, F42, F43, F44, F64, F71, finding:f35-sibling-commit-msg-vs-diff-drift]
 ---
 
 # Methodology deltas since f41-f43
 
 These are NOT failure-mode findings. They are **refinements to ADSD's own
-topology, dispatch, and audit discipline** — each empirically forced during the
-Cobrust v0.6.0 → v0.7.0 multi-agent run. A finding says "the system did X wrong";
-a methodology delta says "the way we *run* the multi-agent process should change."
+topology, dispatch, and audit discipline** — Deltas 1-7 and the first run of Delta 8
+were empirically forced during the Cobrust v0.6.0 → v0.7.0 multi-agent run; **Delta
+8's session-wide close (experiment → default) and Delta 9 (the Elegance Law) come
+from the follow-on 2026-05-29/30 dynamic-Workflow session.** A finding says "the
+system did X wrong"; a methodology delta says "the way we *run* the multi-agent
+process should change."
 
 Each section: **what changed → why (the empirical trigger) → how to apply.**
 Cobrust commit SHAs are cited as evidence, not pasted.
@@ -248,13 +251,17 @@ reason — otherwise it is silent rot (the F37 family).
 
 ---
 
-## Delta 8 — Deterministic-orchestration experiment (meta, 2026-05-29)
+## Delta 8 — Dynamic-Workflow orchestration (meta; experiment 2026-05-29 → default 2026-05-30)
 
-**What changed.** This very back-port — parallel author fan-out → synthesis → impl
-→ independent audit — was executed by a **deterministic orchestration script** (a
-Claude Code dynamic Workflow) rather than by the orchestrating lead hand-managing
-each dispatch. Recorded here as an ADSD methodology *data point*, not a ratified
-practice.
+**What changed.** The back-port that first exercised this — parallel author
+fan-out → synthesis → impl → independent audit — was executed by a **deterministic
+orchestration script** (a Claude Code dynamic Workflow) rather than by the
+orchestrating lead hand-managing each dispatch. First recorded as an ADSD
+methodology *data point*, not a ratified practice. **The follow-on
+2026-05-29/30 session promoted it from experiment arm to the *default* Cobrust dev
+mode** — see the session-wide empirical close below. The concrete reusable shape
+(six patterns + the honest-framing guards + the self-improvement chain) is
+distilled in `reference/workflow-orchestration-patterns.md`.
 
 **Why (the hypothesis under test).** The dispatch/audit deltas above (1–7) all
 exist to patch failure surfaces created by a human-or-agent lead *juggling*
@@ -277,11 +284,12 @@ introduce?
 - *Evidence (Cobrust):* the v0.7.0 methodology back-port + a paired Cobrust advance
   step were run via a dynamic Workflow as a stability experiment, 2026-05-29.
 
-**Empirical result (post-run, attribution-corrected).** The run produced a clean
-parallel-fan-out consolidation (4 authors → synthesis, accurate, complete) and a
-high-quality `impl` artifact (the §2.5 error-rendering fix). It had ONE gap: the
-`impl` agent left its work uncommitted, skipped a format gate, and the downstream
-independent-audit stage therefore returned `BLOCK` on incomplete information.
+**Empirical result — first run (post-run, attribution-corrected).** The first run
+produced a clean parallel-fan-out consolidation (4 authors → synthesis, accurate,
+complete) and a high-quality `impl` artifact (the §2.5 error-rendering fix). It had
+ONE gap: the `impl` agent left its work uncommitted, skipped a format gate, and the
+downstream independent-audit stage therefore returned `BLOCK` on incomplete
+information.
 
 The lead's *first* read was a design flaw ("single-shot impl needs a nudge-loop").
 That attribution was **wrong**. Root cause was a **transient socket/network failure
@@ -307,6 +315,94 @@ introduces is **no built-in resilience to transient agent failure**:
 - *Corrected by:* human review of the run's impl-agent transcript, 2026-05-29 — the
   error was a socket close, not a reasoning/quality gap.
 
+**Empirical close — the session-wide result (experiment → default, 2026-05-30).**
+A single intensive 2026-05-29/30 Cobrust session then ran the dispatch loop
+*almost entirely* as dynamic Workflows rather than hand-managed dispatch — the
+**session's workflow run was ~11 workflows**: an ADSD F44-F70 back-port, a §2.5
+error-UX fix, an ADSD docs-enrich, then a product pipeline (an ecosystem-operators
+phase, the F71/WASM enablement, a backend-strategy ADR, an HTTP-middleware layer, a
+second ecosystem-operators phase, a numerical-library strategy ADR, and a linalg
+phase). This is the close-out that promotes Delta 8 from *experiment arm* to the
+**default dev mode**:
+
+- **The last several workflows ran fully autonomous** — audit verdict `GO`, **zero
+  lead-side finishing**, just push + CI. (Contrast the first run above, which
+  needed cosmetic lead integration after the socket death.)
+- **The audit gate earned its keep** — it caught real issues a less-disciplined
+  flow would have shipped: (a) the **network-socket-truncated impl deliverable** →
+  `BLOCK` (the first-run gap above, which became the `robust()` refinement); (b) a
+  **dogfood overclaim** — the methodology's *own* enriched docs asserting uncitable
+  product statistics, violating **ADSD §4 no-overclaim applied to ITS OWN docs** →
+  `GO_WITH_FINDINGS`; (c) a **latent false-green bug** — an unresolved
+  dotted-attribute chain that *built and ran* with garbage values, caught at the
+  **TEST stage** (test-first-PAIR-as-script). Each verdict changed what the script
+  did next; none was ceremony.
+- **The self-improvement chain** (the methodology improving itself across runs):
+  workflow-1's socket death → the **socket-resilience refinement** (`robust()`
+  retry-wrap) was folded into **every subsequent workflow → no further
+  socket-truncation failure**. Then the **honest-framing guards** (claim-vs-diff +
+  chain-generality honesty — an agent must report the *real* git-numstat, not
+  falsely claim "0 mir/codegen" for a change that legitimately touches those layers)
+  were folded in. Then the **ELEGANCE LAW** (Delta 9 below) was folded into every
+  backend/ecosystem audit rubric. Each run's failure became the next run's built-in
+  guard — research-product co-evolution at the orchestration layer.
+
+These results do **not** retract the two standing caveats: a fixed topology still
+cannot mid-run re-scope (log cases where the rigid pipeline forced a worse
+decomposition), and the orchestration script is **itself authored code** — subject
+to Delta 3 independent audit like any other artifact (an un-audited orchestrator is
+a new SPOF). The reusable patterns are catalogued in
+`reference/workflow-orchestration-patterns.md`; the SKILL.md §"Part 2.5" cross-ref
+treats this as the current default rather than an experiment.
+
+---
+
+## Delta 9 — The Elegance Law (the .cb surface is a clean re-design, not a mechanical clone)
+
+**What changed.** A new methodology *principle* (user-mandated): when wrapping a
+Rust crate or designing an ecosystem / backend surface, the `.cb` surface is a
+**clean re-design that DROPS the accumulated footguns of other languages**
+(Flask / FastAPI / Express / pydantic, …) — it is **NOT a mechanical clone** of the
+wrapped crate's or the predecessor framework's API. This **extends "Drop from
+Python" (CLAUDE.md §2.2) from the language core to the ecosystem surface**, and is
+the §2.5 LLM-first principle (the language LLM agents write correctly on the first
+try) applied to libraries, not just syntax.
+
+**Why.** The same reasoning that purges GIL / implicit-truthiness / exceptions-as-
+control-flow from the *core* applies to the *ecosystem*: a wrapper that faithfully
+reproduces another language's footguns inherits its first-try error surface. A
+clean re-design is what makes the wrapped surface something an LLM agent gets right
+ex ante. Concretely, each ecosystem/backend surface decision should prefer:
+
+- **compile-time-typed validation** over runtime-asserted (drops pydantic-style
+  runtime validation surprises);
+- **explicit dependencies** over decorator / dependency-injection magic (drops
+  FastAPI-style implicit DI);
+- **`Result`** over exceptions-as-control-flow;
+- **typed routes / bodies** over stringly-typed (drops Flask/Express stringly-typed
+  routing);
+- **typed composable config** over option-bag sprawl.
+
+**How to apply.**
+- **Each ecosystem ADR carries a footgun-ledger** — an explicit list of *which
+  specific other-language footgun each surface decision avoids* (e.g. "typed body
+  extractor — avoids pydantic's runtime-only validation; avoids Express's
+  `req.body` being `any`"). The ledger is the falsifiable record that the surface is
+  a re-design, not a clone.
+- **Each backend / ecosystem workflow's audit scores `elegant + no-legacy-debt`** —
+  a rubric dimension that asks "did this surface drop the predecessor's footguns, or
+  mechanically reproduce them?" This was folded into every backend/ecosystem audit
+  rubric across the 2026-05-30 session's self-improvement chain (Delta 8 close).
+- Cross-check against §2.2 (the "Drop from Python" table) and §2.5 (compile-time-
+  catch-errors + maximize-overlap-with-training-data): an elegant ecosystem surface
+  surfaces its bugs at type-check time and matches the LLM's correct priors, not the
+  predecessor framework's footgun priors.
+- *Evidence (Cobrust):* the session's ecosystem/backend workflows (the
+  HTTP-middleware layer, the ecosystem-operator phases, the backend-strategy and
+  numerical-library strategy ADRs) each shipped under this law — typed routes/bodies
+  and explicit deps over the Flask/FastAPI/Express decorator-and-stringly-typed
+  defaults, with the per-ADR footgun-ledger as the artifact.
+
 ---
 
 ## Cross-references
@@ -315,7 +411,16 @@ introduces is **no built-in resilience to transient agent failure**:
   parent of Delta 6) and the F1-Sediment family (Deltas 4, 5, 7 are sediment-class
   pre-flight/honest-signal disciplines).
 - This batch's findings — F44 (stale-green; parent of Deltas 6 and 7), F64
-  (lockfile staging; parent of Delta 4).
+  (lockfile staging; parent of Delta 4), F71 (the wasm-typed-call ABI fuzzer
+  surfaced during the same session that closed Delta 8 and folded in Delta 9).
+- Delta 8 depth — `reference/workflow-orchestration-patterns.md` (the six reusable
+  orchestration patterns: `robust()` retry-wrap, test-first-PAIR-as-script,
+  audit-schema-verdict, one-workflow-per-working-tree, ≤4-parallel,
+  CTO-integrates-after-verdict) and `SKILL.md` §"Part 2.5".
+- Delta 9 (Elegance Law) — CLAUDE.md §2.2 ("Drop from Python"), §2.5 (LLM-first
+  design principle); the per-ADR footgun-ledger practice.
+- `reference/cobrust-f31-f39/F40-stream-watchdog-false-stall-signal.md` — the
+  transient-agent-failure class behind Delta 8's `robust()` refinement.
 - Cobrust source: `cto_operations_runbook.md` (dispatch + audit + pre-commit SOPs),
   `feedback_subagent_model_all_opus.md` (Delta 1), `feedback_p10_strict_dispatcher.md`
   (Delta 2), `feedback_post_author_audit_mandatory.md` (Delta 3),

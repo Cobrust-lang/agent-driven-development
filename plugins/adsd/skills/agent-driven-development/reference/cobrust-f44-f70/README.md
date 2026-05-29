@@ -1,19 +1,22 @@
 ---
 batch_id: cobrust-f44-f70
-title: "F44-F70: Cobrust empirical corroboration batch (CI-as-oracle hardening + stub/parity false-pass family + cross-target enablement + ecosystem-import chain + 8 methodology deltas)"
-date: 2026-05-29
-cobrust_baseline: v0.6.0 → v0.7.0 multi-agent run (main HEAD 936f13c at time of filing; 2026-05-22 → 2026-05-29)
+title: "F44-F71: Cobrust empirical corroboration batch (CI-as-oracle hardening + stub/parity false-pass family + cross-target enablement + ecosystem-import chain + 9 methodology deltas)"
+date: 2026-05-30
+cobrust_baseline: v0.6.0 → v0.7.0 multi-agent run (main HEAD 936f13c at time of filing; 2026-05-22 → 2026-05-29) + the 2026-05-29/30 dynamic-Workflow session (F71 + Delta 8 close + Delta 9)
 prior_batch: cobrust-f41-f43 (catalogue through F43; PR follow-up to F31-F40)
 ---
 
-# Cobrust F44-F70 batch — README
+# Cobrust F44-F71 batch — README
 
-Twenty-six new failure-mode findings (F44-F70, with F45a as a systemic-scope
+Twenty-seven failure-mode findings (F44-F71, with F45a as a systemic-scope
 sub-form; F52 and F57 deliberately skipped in Cobrust's local numbering), two
 distilled cross-cutting **pattern** docs, and one **methodology-deltas** doc —
-all empirically forced by the Cobrust v0.6.0 → v0.7.0 multi-agent run
-(2026-05-22 → 2026-05-29). This is a follow-up to the f41-f43 batch (catalogue
-through F43) and the f31-f39 batch (F31-F40).
+empirically forced by the Cobrust v0.6.0 → v0.7.0 multi-agent run
+(2026-05-22 → 2026-05-29) and the follow-on 2026-05-29/30 dynamic-Workflow
+session (which added F71, closed Delta 8 experiment → default, and folded in
+Delta 9). This is a follow-up to the f41-f43 batch (catalogue through F43) and
+the f31-f39 batch (F31-F40). (The dir name stays `cobrust-f44-f70` for stable
+cross-references even though the batch now extends to F71.)
 
 Each finding carries its Cobrust commit SHA(s) as a ground-truth anchor in the
 frontmatter (`cobrust_sha`). The slot numbers here ARE the Cobrust local IDs
@@ -25,21 +28,26 @@ numbering is shared 1:1.
 
 Three shapes, all first-class deliverables:
 
-1. **26 findings (F44-F70)** — same Symptoms / Root-cause / Recovery / Evidence
-   format as the catalogue, clustered into recurring families (below).
+1. **27 findings (F44-F71)** — same Symptoms / Root-cause / Recovery / Evidence
+   format as the catalogue, clustered into recurring families (below). F71 (wasm
+   typed-call ABI fuzzer) was added by the follow-on 2026-05-29/30 session.
 2. **2 pattern docs** — distilled, multi-finding playbooks that sit above the
    individual findings:
    - `cross-compile-target-enablement-pattern.md` (the F4-Cross-Target family
      playbook: where the seams + gotchas live in staged cross-compile enablement)
    - `ecosystem-import-chain-pattern.md` (the 5-layer ecosystem-import / FFI
      marshalling chain + ID-block allocation discipline)
-3. **1 methodology-deltas doc** — `methodology-deltas.md` — 8 refinements to
+3. **1 methodology-deltas doc** — `methodology-deltas.md` — 9 refinements to
    **ADSD's own** topology / dispatch / audit discipline (NOT failure modes; these
-   say "change how we *run* the process", not "the system did X wrong").
+   say "change how we *run* the process", not "the system did X wrong"). Delta 8
+   (dynamic-Workflow orchestration) closed experiment → default and Delta 9 (the
+   Elegance Law) was added in the follow-on session; the six reusable orchestration
+   patterns are in `reference/workflow-orchestration-patterns.md` (sibling, one
+   level up).
 
 ## Finding families (clustering)
 
-The 26 findings group into five recurring families plus a methodology track:
+The 27 findings group into five recurring families plus a methodology track:
 
 | Family | Findings | One-line shape |
 |--------|----------|----------------|
@@ -47,8 +55,8 @@ The 26 findings group into five recurring families plus a methodology track:
 | **F35-ClaimDrift** (claim ≠ artifact/diff) | F45, F45a, F46, F48, F50, F53 | the stated scope/version/parity outruns the real artifact |
 | **F1-Sediment** (declared-rule ≠ enforced pre-flight) | F46, F49, F54, F55, F65, F69 | a discipline exists as prose; the pre-flight that would enforce it is absent |
 | **F-Codegen / parallel-impl drift** | F47, F50, F56, F60 | type-conditional or twin-backend code silently emits wrong output |
-| **F4-Cross-Target / non-deterministic-CI** | F58, F59, F61, F62, F63, F66, F70 | a host-target / external-service / cold-build assumption breaks the gate |
-| **Methodology deltas** (process refinements) | Deltas 1-8 | how ADSD dispatches + audits, not what a system did wrong |
+| **F4-Cross-Target / non-deterministic-CI** | F58, F59, F61, F62, F63, F66, F70, F71 | a host-target / external-service / cold-build / ABI assumption breaks the gate |
+| **Methodology deltas** (process refinements) | Deltas 1-9 | how ADSD dispatches + audits, not what a system did wrong |
 
 (Findings appear in more than one family where the root cause is compound — the
 frontmatter `family:` field is authoritative per file.)
@@ -83,6 +91,7 @@ frontmatter `family:` field is authoritative per file.)
 | **F68** | Ship the load-bearing chain, defer the surface sugar | `971d4ce` | ratified |
 | **F69** | Constitutional-principle debt erodes at every call site | `936f13c` | **open** |
 | **F70** | Default feature trio incompatible with a new target | `446016c` | **candidate** |
+| **F71** | wasm is a free ABI-correctness fuzzer (typed-call extern audit) | 2026-05-29/30 session | **candidate** |
 
 > **F52 and F57 are intentional gaps** in Cobrust's local numbering (no finding
 > was filed under those IDs). They are not missing clusters — no entry in this
@@ -155,7 +164,7 @@ frontmatter `family:` field is authoritative per file.)
   surface. (Sibling of f41-f43's F42.) **Forces methodology Delta 1's audit
   carve-out reasoning.**
 
-### Cross-target enablement + non-deterministic-input (F54, F55, F58, F60, F61, F63, F66, F67, F70)
+### Cross-target enablement + non-deterministic-input (F54, F55, F58, F60, F61, F63, F66, F67, F70, F71)
 
 - **F54** — a transform pass emits a derived sub-payload a companion prepass never
   registered → table-lookup panic on the synthesized form.
@@ -175,6 +184,12 @@ frontmatter `family:` field is authoritative per file.)
   fixture, not the system under test. (Reconstructed from commit `d29470f`.)
 - **F70** — a library's DEFAULT feature set is an implicit host-target assumption
   that breaks on the first constrained cross-target. (**candidate**.)
+- **F71** — wasm is a free ABI-correctness fuzzer: a codegen extern declared with a
+  sloppy signature (length arg hard-coded `i64` where the runtime used `usize` =
+  `i32`-on-wasm32) is invisible on permissive native ELF linkers but TRAPS on
+  wasm32's strict typed-call check. Cross-compiling to a strict-typed target audits
+  the whole `__cobrust_*` extern table for ABI correctness for free; add a wasm
+  cross-smoke that exercises the extern surface. (**candidate**.)
 
 ### Scope / increment-boundary + design-principle debt (F68, F69)
 
@@ -193,8 +208,9 @@ frontmatter `family:` field is authoritative per file.)
   Cross-compile enablement is a *staged pipeline of seams* (build.rs `--target`
   plumbing → codegen target init → cross-cc/sysroot → CI cross-smoke → qemu/wasmtime
   LIVE); failures cluster at the boundary between your toolchain and the vendored
-  one and surface only under a live cross-run. Distilled from F66, F67, F70, F58,
-  F60, F61. Evidence: `57ebc7e`, `d29470f`, `446016c`.
+  one and surface only under a live cross-run. Distilled from F66, F67, F70, F71,
+  F58, F60, F61. Evidence: `57ebc7e`, `d29470f`, `446016c`. (F71 — the wasm
+  typed-call ABI dividend of stage 5's live cross-run — is the newest sibling.)
 - **`ecosystem-import-chain-pattern.md`** — the 5-layer ecosystem-import / FFI
   marshalling chain + ID-block allocation discipline (chain-generality sub-form of
   F2-Scope). Distilled from F68 + F41. Evidence: `aeb3f5a`, `caa0510`, `971d4ce`,
@@ -202,8 +218,9 @@ frontmatter `family:` field is authoritative per file.)
 
 ## Methodology deltas (`methodology-deltas.md`)
 
-Eight refinements to ADSD's own dispatch/audit discipline — research-product
-co-evolution, not failure modes:
+Nine refinements to ADSD's own dispatch/audit discipline — research-product
+co-evolution, not failure modes (Deltas 1-7 + Delta 8's first run from the v0.7.0
+run; Delta 8's session-wide close and Delta 9 from the 2026-05-29/30 session):
 
 1. **All-top-tier sub-agents** — author *and* audit use the top model; the tier
    matrix is retired (forced by a mid-tier correlated-regression cluster).
@@ -220,16 +237,32 @@ co-evolution, not failure modes:
    retry, SHA-pinned actions/toolchains, ignore external/disk-heavy tests).
 7. **Honest-signal discipline** — fix true-positive signals by *removal*, never
    mask (the F44 stale-green failure mode in reverse).
-8. **Deterministic-orchestration experiment (meta)** — this very back-port ran via
-   a deterministic orchestration script; recorded as an ADSD data point + open
-   question, not a ratified practice.
+8. **Dynamic-Workflow orchestration (meta) — experiment → default.** The
+   deterministic fan-out → synthesis → impl → audit script mode. The follow-on
+   2026-05-29/30 session ran the dispatch loop almost entirely as dynamic Workflows
+   (**~11 workflows**; the last several **fully autonomous** — `GO`, push + CI, zero
+   lead finishing), promoting it from experiment arm to the **default dev mode**.
+   The audit gate caught real issues (a socket-truncated impl → `BLOCK`; a dogfood
+   overclaim → `GO_WITH_FINDINGS`; a latent false-green dotted-attr bug → TEST-stage
+   catch), and a self-improvement chain folded each run's failure into the next run's
+   guard (`robust()` retry-wrap → honest-framing guards → the Elegance Law). The six
+   reusable patterns: `reference/workflow-orchestration-patterns.md`.
+9. **The Elegance Law.** When wrapping a Rust crate or designing an ecosystem/backend
+   surface, the `.cb` surface is a **clean re-design that drops the accumulated
+   footguns** of Flask/FastAPI/Express/pydantic — NOT a mechanical clone. Extends
+   "Drop from Python" (CLAUDE.md §2.2) from the language core to the ecosystem
+   surface: compile-time-typed validation over runtime-asserted, explicit deps over
+   decorator/DI magic, `Result` over exceptions-as-control-flow, typed routes/bodies
+   over stringly-typed, typed composable config over option-bag sprawl. Each
+   ecosystem ADR carries a **footgun-ledger**; each backend/ecosystem workflow's
+   audit scores **`elegant + no-legacy-debt`**.
 
 ## Frontmatter-schema note (honest divergence)
 
 Two frontmatter conventions coexist in this batch, by author cohort:
 
 - **F44-F65** use `catalogue_id:` + `family:` + `cobrust_local_id:` + `cobrust_sha:`.
-- **F66-F70** use `doc_kind: finding` + `finding_id:` + `family:` + `cobrust_sha:`.
+- **F66-F71** use `doc_kind: finding` + `finding_id:` + `family:` + `cobrust_sha:`.
 - **Pattern docs** use `doc_kind: pattern` + `pattern_id:` + `evidence_shas:`.
 - **methodology-deltas.md** uses `doc_kind: methodology-deltas` + `batch_id:`.
 
@@ -268,9 +301,13 @@ cobrust-f44-f70/
   F68-ship-the-load-bearing-chain-defer-the-surface-sugar.md
   F69-design-principle-debt-explicit-borrow-and-bypassed-error-ux.md
   F70-default-feature-trio-incompatible-with-new-target.md
+  F71-wasm-typed-call-abi-fuzzer.md                      (2026-05-29/30 session)
   cross-compile-target-enablement-pattern.md
   ecosystem-import-chain-pattern.md
-  methodology-deltas.md
+  methodology-deltas.md                                  (Deltas 1-9; Delta 8 closed, Delta 9 added)
+
+reference/  (one level up — sibling, referenced by Delta 8)
+  workflow-orchestration-patterns.md                     (the six dynamic-Workflow patterns)
 ```
 
 (F52 and F57 intentionally absent — gaps in Cobrust's local numbering.)
