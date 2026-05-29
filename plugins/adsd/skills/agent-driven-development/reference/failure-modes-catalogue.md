@@ -2579,6 +2579,29 @@ For any ADSD project that uses ADRs/findings/snapshot discipline:
 
 ---
 
+## Cobrust empirical corroboration batches (F31+)
+
+Findings beyond F30 are organized as **per-era batch sub-directories**, each
+empirically corroborated by a distinct Cobrust multi-agent run and anchored to
+Cobrust commit SHAs. They are kept out of this file's body to preserve its
+F1-F30 spine; consult the batch READMEs for slot maps, family clustering, and
+evidence:
+
+- `cobrust-f31-f39/` — F31-F40, Cobrust Phase F.3 → Phase I (2026-05-16/19).
+- `cobrust-f41-f43/` — F41-F43, Cobrust Phase G/J (2026-05-19/20): source-surface
+  leakage + device-name redaction + SPOF heavy-build host.
+- `cobrust-f44-f70/` — F44-F70 (F45a sub-form; F52/F57 intentionally skipped) +
+  two pattern docs (`cross-compile-target-enablement-pattern.md`,
+  `ecosystem-import-chain-pattern.md`) + `methodology-deltas.md`, Cobrust v0.6.0 →
+  v0.7.0 (2026-05-22/29): CI-as-oracle hardening, stub/parity false-pass family,
+  cross-target enablement, ecosystem-import chain, and 8 ADSD process deltas.
+  See `cobrust-f44-f70/README.md`.
+
+These batch slot numbers are Cobrust local IDs and may not align 1:1 with this
+file's F-numbering (e.g. f31-f39 re-mapped local IDs onto free upstream slots).
+
+---
+
 ## Catalogue maintenance
 
 This catalogue is alive — add to it as you encounter new failure modes.
