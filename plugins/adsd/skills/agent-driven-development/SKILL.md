@@ -977,6 +977,7 @@ Everything else is adaptable.
 ### Originals (distilled from Cobrust 12-day intensive run)
 
 - Part 6 Full failure-modes catalogue: `reference/failure-modes-catalogue.md`
+  - Per-era Cobrust corroboration batches (F31+, slot=local-ID, SHA-anchored): `reference/cobrust-f31-f39/`, `reference/cobrust-f41-f43/`, `reference/cobrust-f44-f70/` (F44-F70 + 2 pattern docs + `methodology-deltas.md` — 8 dispatch/audit refinements from the v0.6.0→v0.7.0 run)
 - Templates: `templates/*.md`
 - Cobrust case study: `case-study/cobrust-multi-agent-experience.md`
 
