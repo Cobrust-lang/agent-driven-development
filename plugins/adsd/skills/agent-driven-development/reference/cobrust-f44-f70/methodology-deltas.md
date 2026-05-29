@@ -277,6 +277,36 @@ introduce?
 - *Evidence (Cobrust):* the v0.7.0 methodology back-port + a paired Cobrust advance
   step were run via a dynamic Workflow as a stability experiment, 2026-05-29.
 
+**Empirical result (post-run, attribution-corrected).** The run produced a clean
+parallel-fan-out consolidation (4 authors → synthesis, accurate, complete) and a
+high-quality `impl` artifact (the §2.5 error-rendering fix). It had ONE gap: the
+`impl` agent left its work uncommitted, skipped a format gate, and the downstream
+independent-audit stage therefore returned `BLOCK` on incomplete information.
+
+The lead's *first* read was a design flaw ("single-shot impl needs a nudge-loop").
+That attribution was **wrong**. Root cause was a **transient socket/network failure
+mid-agent** — the same infra-failure class as `F40-stream-watchdog-false-stall-signal`
+and the 529 / stream-watchdog sub-agent deaths seen elsewhere in the same project.
+The orchestration *topology* held; the `impl` work itself was sound (the lead's
+integration was cosmetic finishing — apply formatter, commit, fix one self-citing SHA).
+
+The sharpened lesson — the **first real new surface** deterministic orchestration
+introduces is **no built-in resilience to transient agent failure**:
+
+- A bare `agent()` whose process dies (socket / 529 / watchdog) returns a truncated
+  or errored result, which a downstream stage (here, the audit) then consumes as if
+  it were a real deliverable — producing a misleading verdict on a non-failure.
+- **Refinement:** wrap failure-prone stages so a truncated/errored agent result is
+  *detected and re-dispatched* before any downstream stage consumes it (retry-with-
+  backoff on agent error; treat an unparseable/empty result as a retry trigger, not
+  a finding). The impl→audit edge specifically must not let a network-killed impl
+  poison the audit.
+- This does **not** invalidate the topology — it says a production orchestrator needs
+  the same transient-failure retry discipline that hand-managed dispatch gets for free
+  (the lead simply re-dispatches a died agent). Encode it once, in the script.
+- *Corrected by:* human review of the run's impl-agent transcript, 2026-05-29 — the
+  error was a socket close, not a reasoning/quality gap.
+
 ---
 
 ## Cross-references
