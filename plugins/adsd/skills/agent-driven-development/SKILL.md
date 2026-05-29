@@ -1,6 +1,6 @@
 ---
 name: agent-driven-development
-description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P8/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks). Provides 5-tier role topology (P10 CTO / P9 tech lead / P8 domain expert / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), snapshot-first documentation discipline, staged mocked-to-live progression guidance, 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), F1–F30 failure-modes catalogue, AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md and case-study/cobrust-multi-agent-experience.md on demand.
+description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P8/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks). Provides 5-tier role topology (P10 CTO / P9 tech lead / P8 domain expert / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), dynamic-Workflow deterministic orchestration (fan-out → synthesis → impl → audit), snapshot-first documentation discipline, staged mocked-to-live progression guidance, 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), F1–F70 failure-modes catalogue (original F1-F30 + Cobrust corroboration batches F31-F40 / F41-F43 / F44-F70 + 8 methodology deltas), AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md, the per-batch reference/cobrust-f31-f39 / -f41-f43 / -f44-f70 corroboration sets (incl. methodology-deltas.md), and case-study/cobrust-multi-agent-experience.md on demand.
 ---
 
 # Agent-Driven Software Development (ADSD)
@@ -8,10 +8,23 @@ description: ADSD methodology for managing multi-agent software projects where A
 > A methodology for managing software projects where the bulk of the work
 > is done by AI agents under human strategic direction.
 >
-> **Distilled from**: Cobrust project, **12 days wall-clock (2026-04-30 → 2026-05-12)**, ~278 commits, 48+ ADRs, 24+ findings, 2 P0 codegen bugs found via organic stress test, v0.1.0 + v0.1.1 + v0.1.2 shipped + α Phase F.2 in flight.
+> **Originally distilled from** (the distillation snapshot): Cobrust project,
+> **12-day intensive run (2026-04-30 → 2026-05-12)**, ~278 commits, 48+ ADRs,
+> 24+ findings, 2 P0 codegen bugs found via organic stress test, v0.1.0 + v0.1.1
+> + v0.1.2 shipped + α Phase F.2 in flight.
 >
-> **Status**: extracted 2026-05-10. Apply as-is or adapt; this is
-> battle-tested but not orthodoxy.
+> **Where it stands now** (the live arc): the origin project did not stop at the
+> distillation snapshot — it kept running well past it, and the failure-modes
+> catalogue grew with it, from the original F1-F30 to **F1-F70** across three
+> later corroboration batches (F31-F40 + F41-F43 + F44-F70; F45a sub-form;
+> F52/F57 intentional gaps), plus **8 methodology deltas**
+> (`reference/cobrust-f44-f70/methodology-deltas.md`). Read the numbers in the
+> snapshot blockquote above as a **floor**, not the current total. (The origin
+> project's later product milestones live in the separate Cobrust repo and are
+> not re-measured here.)
+>
+> **Status**: first extracted 2026-05-10; live arc back-ported through 2026-05-29.
+> Apply as-is or adapt; this is battle-tested but not orthodoxy.
 
 ---
 
@@ -531,6 +544,105 @@ encouraged: trailer line `Co-Authored-By:` for AI-generated commits
 
 ---
 
+## Part 2.5 — Dynamic-Workflow orchestration (the current alternative to hand-managed dispatch)
+
+The two-phase dispatch SOP (Part 2) assumes a **lead agent who hand-manages
+each dispatch** — fires sub-agents, polls for completion, synthesizes reports,
+gates the audit, decides the merge. That worked for the entire distillation
+window. But the dispatch + audit refinements that hardened across the later
+corroboration batches (the 8 methodology deltas) are almost all patches for
+failure surfaces the **juggling itself** creates:
+
+- stale snapshots while the lead's attention is on another stream (F1-Sediment)
+- author/audit *races* — the audit polls, the author finishes after the window,
+  the audit reports against a stale snapshot (Delta 1)
+- lossy context compaction — raw prose/code crowds out the lead's
+  compression-fragile strategic state (Delta 2)
+- skipped or forgotten post-author audits and pre-flight checks under sprint
+  tempo (Deltas 3, 4)
+
+**Dynamic-Workflow orchestration** (ADSD methodology Delta 8) encodes the
+dispatch topology as a **deterministic script** — a Claude Code dynamic
+Workflow — so the lead stops juggling. The canonical shape is a four-stage
+pipeline:
+
+```mermaid
+flowchart LR
+    subgraph FanOut["1 · fan-out (parallel authors)"]
+        A1[author 1]
+        A2[author 2]
+        A3[author 3]
+        A4[author 4]
+    end
+    A1 --> S
+    A2 --> S
+    A3 --> S
+    A4 --> S
+    S[2 · synthesis<br/>consolidate N reports] --> I
+    I[3 · impl<br/>single authored artifact] --> AU
+    AU{4 · independent audit<br/>read-only, different agent} -->|GO| M[lead: merge / tag]
+    AU -->|BLOCK / findings| I
+```
+
+- **Stage 1 — fan-out**: N parallel authors (respect the ≤ 4-way cap, Part 1)
+  each produce a scoped deliverable.
+- **Stage 2 — synthesis**: one agent consolidates the N reports into a single
+  accurate, deduped picture.
+- **Stage 3 — impl**: a single authored artifact built from the synthesis.
+- **Stage 4 — independent audit**: read-only, a *different* agent than the impl
+  author (Delta 3), verdict GO / GO-WITH-FINDINGS / BLOCK. Findings loop back to
+  impl before merge.
+
+The lead keeps only the strategic tier (Delta 2): approve the topology, evaluate
+the final audit verdict, decide merge/tag. The script holds the sequencing.
+
+### The socket-resilience caveat (Delta 8, the first real new surface)
+
+This is **recorded as an experiment arm, not a ratified replacement** for
+hand-managed dispatch. The honest result from its first real run (Cobrust
+v0.7.0 back-port, 2026-05-29): the topology held and produced a clean fan-out
+consolidation plus a sound impl artifact — but it hit **one gap**. A
+**transient socket/network failure mid-agent** (the same infra-failure class as
+`F40-stream-watchdog-false-stall-signal`) left the impl agent's work uncommitted
+with a skipped format gate, and the downstream audit stage *consumed that
+truncated result as if it were a real deliverable* — returning a misleading
+`BLOCK` on a non-failure.
+
+> The lead's first read ("the single-shot impl needs a nudge-loop") was the
+> **wrong attribution**. Root cause was a socket close, not a reasoning gap. The
+> impl work itself was sound.
+
+The sharpened lesson:
+
+- A bare `agent()` whose process dies (socket / 529 / watchdog) returns a
+  truncated or errored result. A hand-managing lead re-dispatches a died agent
+  *for free*; a deterministic script does **not** — unless you build it in.
+- **Refinement: wrap failure-prone stages so a truncated/errored agent result is
+  detected and re-dispatched before any downstream stage consumes it**
+  (retry-with-backoff on agent error; treat an unparseable/empty result as a
+  retry trigger, not a finding). The **impl → audit edge specifically must not
+  let a network-killed impl poison the audit**.
+- This does not invalidate the topology. It says a production orchestrator needs
+  the same transient-failure retry discipline hand-managed dispatch gets
+  implicitly — encode it once, in the script.
+
+Two further new surfaces to log (open questions): a **fixed topology cannot
+mid-run re-scope** the way a lead can (log cases where the rigid pipeline forced
+a worse decomposition); and **the orchestration script is itself authored code**
+— subject to Delta 3 independent audit like any other artifact (an un-audited
+orchestrator is a new SPOF).
+
+**When to use**: high-fan-out work with a stable, repeatable shape (a
+back-port, a multi-author doc-refresh, a batch of same-shape ADRs) where the
+juggling overhead and its failure surface dominate. **When NOT to use**: work
+that needs frequent mid-run re-scoping, or a one-off where writing + auditing
+the orchestration script costs more than the hand-managed dispatch would.
+
+See `reference/cobrust-f44-f70/methodology-deltas.md` Delta 8 for the full
+empirical write-up.
+
+---
+
 ## Part 3 — Documentation Discipline
 
 ### ADR vs Finding vs Snapshot — the three artifacts
@@ -974,10 +1086,23 @@ Everything else is adaptable.
 
 ## Cross-references (within this skill)
 
-### Originals (distilled from Cobrust 12-day intensive run)
+### Originals (distilled from the Cobrust run — snapshot + live arc)
 
-- Part 6 Full failure-modes catalogue: `reference/failure-modes-catalogue.md`
-  - Per-era Cobrust corroboration batches (F31+, slot=local-ID, SHA-anchored): `reference/cobrust-f31-f39/`, `reference/cobrust-f41-f43/`, `reference/cobrust-f44-f70/` (F44-F70 + 2 pattern docs + `methodology-deltas.md` — 8 dispatch/audit refinements from the v0.6.0→v0.7.0 run)
+- Part 6 Failure-modes catalogue (the original **F1-F30**, version 1.2.7):
+  `reference/failure-modes-catalogue.md`
+  - Per-era Cobrust corroboration batches (slot = local-ID, SHA-anchored) take
+    the catalogue to **F1-F70** (with F45a sub-form; F52/F57 intentional gaps):
+    - `reference/cobrust-f31-f39/` — **F31-F40** (10 findings, v0.3.0 run)
+    - `reference/cobrust-f41-f43/` — **F41-F43** (3 findings, Phase G/J)
+    - `reference/cobrust-f44-f70/` — **F44-F70** (26 findings incl. F45a) + 2
+      cross-cutting pattern docs (`cross-compile-target-enablement-pattern.md`,
+      `ecosystem-import-chain-pattern.md`) + **`methodology-deltas.md`** — the
+      **8 dispatch/audit refinements** from the v0.6.0 → v0.7.0 run (Delta 1
+      all-top-tier sub-agents · Delta 2 dispatcher-as-context-custodian · Delta 3
+      mandatory post-author audit · Delta 4 lockfile-staging · Delta 5
+      chain-generality verification · Delta 6 CI-infra-hardening · Delta 7
+      honest-signal · Delta 8 dynamic-Workflow orchestration, with its
+      socket-resilience refinement — see Part 2.5)
 - Templates: `templates/*.md`
 - Cobrust case study: `case-study/cobrust-multi-agent-experience.md`
 
@@ -995,22 +1120,39 @@ These five represent **5 of 12 v1.2.0 gap candidates** identified by review-clau
 
 ## Origin & lineage
 
-This skill is distilled from the Cobrust project (2026-04-30 to
-2026-05-12) — a Rust-implemented Python successor with an LLM-driven
-translation pipeline. ~278 commits over 12 wall-clock days, 49 ADRs (0001..0048 + 0047a), 27 findings, 2 stress-test farms,
-4 parallel-agent topology stress-tested at 4-way max. Patterns
-documented here passed the test of "did we hit this in production
-and did the fix work?".
+This skill is distilled from the Cobrust project — a Rust-implemented Python
+successor with an LLM-driven translation pipeline. Patterns documented here
+passed the test of "did we hit this in production and did the fix work?".
+
+**The distillation snapshot (the original 12-day intensive run, 2026-04-30 →
+2026-05-12)**: ~278 commits over 12 wall-clock days, 49 ADRs (0001..0048 +
+0047a), 27 findings, 2 stress-test farms, a 4-parallel-agent topology
+stress-tested at 4-way max. This is the window Parts 1/3/4/5/6 were first
+distilled from, and where failure modes F1-F30 were observed.
+
+**The live arc (what the origin project became after the snapshot)**: Cobrust
+did **not** stop on 2026-05-12. It kept running well past the distillation
+window, and that continued run is the empirical source for the **three
+corroboration batches** (F31-F40, F41-F43, F44-F70 — taking the catalogue to
+**F1-F70**, with the F45a sub-form and F52/F57 as intentional numbering gaps)
+and the **8 methodology deltas** (Delta 1 all-top-tier sub-agents → Delta 8
+dynamic-Workflow orchestration). Treat the snapshot stats above as a **floor**:
+they describe only the original window, not the current total. (The origin
+project's later product milestones — new ecosystem modules, additional compile
+targets — live in the separate Cobrust repo and are not re-measured here.)
 
 Specific Cobrust artifacts that inspired each Part:
 - Part 1 Topology: `findings/multi-agent-cobrust-topology.md`
 - Part 2 Two-phase dispatch: `feedback_p9_two_phase_dispatch` memory
+- Part 2.5 Dynamic-Workflow orchestration: `reference/cobrust-f44-f70/methodology-deltas.md` (Delta 8, v0.7.0 back-port run)
 - Part 3 Snapshot discipline: 8th + 9th close-out reviews
 - Part 4 Stress-test farms: Conway-cobrust-toy + Cobrust-leetcode-farm
 - Part 5 Wedge: 10th strategic review (`reviews/2026-05-10-...md`)
-- Part 6 Failure catalogue: aggregated from 6+ findings
+- Part 6 Failure catalogue: aggregated from 6+ findings; corroborated + extended
+  to F70 by the three `reference/cobrust-f31-f39 / -f41-f43 / -f44-f70` batches
 
 If you adopt ADSD, attribute Cobrust as origin. If you improve it,
 back-port the improvement here.
 
-— Distilled by review-claude (third-party audit window), 2026-05-10
+— Distilled by review-claude (third-party audit window), 2026-05-10;
+  live arc back-ported 2026-05-29
