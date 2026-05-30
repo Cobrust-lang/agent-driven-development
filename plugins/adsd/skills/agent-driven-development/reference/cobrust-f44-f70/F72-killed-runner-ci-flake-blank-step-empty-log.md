@@ -1,7 +1,7 @@
 ---
 doc_kind: finding
 finding_id: F72
-title: "A killed-runner CI flake (OOM / timeout / infra) looks like a code failure but isn't — its signature is a BLANK step conclusion + an EMPTY failure log"
+title: "A killed-runner CI flake (OOM / timeout / infra) looks like a code failure but isn't — its RELIABLE signature is an EMPTY failure log (no error line, no exit-code line); the step conclusion can be blank OR 'failure'"
 family: F4-Cross-Target (non-deterministic-CI sub-form)
 severity: P2 (one red job on a green commit; cheap to diagnose once the signature is known, easy to misdiagnose as a code bug)
 status: candidate
@@ -34,7 +34,7 @@ this batch, and the two are diagnosed by opposite signatures:
 
 | | **F72 — killed runner** | **F64 — lockfile `--locked` mismatch** |
 |---|---|---|
-| step conclusion | **BLANK** (no result recorded) | **`failure`** (the command ran and exited non-zero) |
+| step conclusion | **BLANK _or_ `failure`** — UNRELIABLE: a killed runner manifests as either, so do NOT key on it | **`failure`** (the command ran and exited non-zero) |
 | `--log-failed` | **EMPTY** (runner died before flushing) | **LOGGED** error + a help-line at the log tail |
 | root cause | runner OOM / timeout / infra reap | a real, reproducible drift in the committed tree |
 | reproduces locally? | **no** (local re-run + CI re-run pass) | **yes** (the locked command fails identically locally) |
@@ -67,27 +67,44 @@ treats every red as a code defect will hunt a bug that does not exist, or worse,
 trustworthy (the same trust-in-the-gate concern as F44 stale-green and F59
 external-service flakes — this is its OOM/timeout sibling).
 
-## Empirical evidence (Cobrust 2026-05-30)
+## Empirical evidence (Cobrust 2026-05-30) — TWO occurrences, TWO step-conclusion forms
 
-Commit `a1c9d83`: the `cargo build (ubuntu-latest)` matrix job failed with a **blank
-step conclusion and an empty `--log-failed`**, while on the *same commit*
-`cargo test (ubuntu)` and `cargo build (macOS)` both **passed**. Diagnosis:
+The SAME flake — a transient OOM on the memory-heavy `cargo build --workspace
+--all-targets --locked (ubuntu-latest)` step — recurred twice on green commits, and the
+**step conclusion differed between them**, which is exactly why the step conclusion is
+NOT the reliable tell:
 
-- **Reproduce locally with the exact command** — `cargo build --workspace
-  --all-targets --locked` → **exit 0**. (The `--locked` flag here does double duty: it
-  also rules out an F64-class lockfile drift in the same run.)
-- **Re-run the failed job** — `gh run rerun <id> --failed` → **all green**.
+- `a1c9d83`: failing step **BLANK conclusion** + empty `--log-failed`.
+- `541f348`: failing step **`failure` conclusion** + a log carrying only the `##[group]`
+  header — NO `error:`/`error[` line and NO `Process completed with exit code N` line.
 
-Both passing = environmental. The diagnosis: a transient OOM on the memory-heavy
-`--all-targets` build step (its peak memory dwarfs the `cargo test` and macOS jobs that
-survived). No code change was made; the red was infrastructure weather.
+Both times, on the same commit, `cargo test (ubuntu)` + `cargo build (macOS)` **passed**.
+Diagnosis each time: **reproduce the exact command locally** (`cargo build --workspace
+--all-targets --locked` → **exit 0**; `--locked` also rules out an F64 lockfile drift) +
+**`gh run rerun <id> --failed`** → **all green**. Both passing = environmental.
+
+**The reliable discriminator is the LOG CONTENT, not the step conclusion:** a real
+cargo/rustc error ALWAYS logs an `error:` / `error[` / `could not compile` line AND a
+`Process completed with exit code N` line; a killed runner logs neither (at most the step
+header). Grep the failed log for those — their absence ⇒ killed runner, whatever the step
+conclusion says. (The original "blank step conclusion" signature was one manifestation;
+the `541f348` recurrence proved a `failure` conclusion is equally possible.)
+
+## Resolution (recurring fix, Cobrust `3aa32ae`)
+
+Re-running works, but a *recurring* memory-heavy flake earns a structural fix (Delta 6).
+The fix here was to **cap build parallelism**: `cargo build --workspace --all-targets
+--locked --jobs 2` in ci.yml. The LLVM-statically-linked test binaries spike peak RSS when
+many link concurrently; `--jobs 2` bounds concurrency WITHOUT changing the `--all-targets`
+target set (the full check is preserved). Escalate to `-j 1` if it ever recurs.
 
 ## Detection rule
 
-> When one CI job is red on an otherwise-green commit, **first inspect the failing
-> step's conclusion and log**. If the step conclusion is **blank** and
-> `gh run view --log-failed` is **empty**, treat it as a **killed-runner flake (OOM /
-> timeout / infra)**, NOT a code bug. Confirm with two commands: (1) reproduce the
+> When one CI job is red on an otherwise-green commit, **inspect the failing step's LOG,
+> not its conclusion**. If `gh run view --log-failed` has NO error line (`error:` /
+> `error[` / `could not compile`) and NO `Process completed with exit code N` line —
+> regardless of whether the step conclusion is blank or `failure` — treat it as a
+> **killed-runner flake (OOM / timeout / infra)**, NOT a code bug. Confirm with two commands: (1) reproduce the
 > exact failing command locally — for a build step, `cargo build --workspace
 > --all-targets --locked` (the `--locked` also rules out an F64 lockfile bug); (2)
 > `gh run rerun <id> --failed`. Both green ⇒ environmental; do not touch code. A
