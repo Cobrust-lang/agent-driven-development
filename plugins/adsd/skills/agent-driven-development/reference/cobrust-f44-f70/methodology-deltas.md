@@ -1,12 +1,12 @@
 ---
 doc_kind: methodology-deltas
 batch_id: cobrust-f44-f70
-title: "Methodology deltas since the f41-f43 ADSD snapshot — topology / dispatch / audit refinements forced by the Cobrust v0.7.0 multi-agent run + the 2026-05-29/30 dynamic-Workflow session"
+title: "Methodology deltas since the f41-f43 ADSD snapshot — topology / dispatch / audit refinements forced by the Cobrust v0.7.0 multi-agent run + the 2026-05-29/30 dynamic-Workflow session + the 2026-05-30 FastAPI-real impl run"
 date: 2026-05-30
-empirical_project: Cobrust v0.6.0 → v0.7.0 multi-agent run (2026-05-22 → 2026-05-29) + the 2026-05-29/30 dynamic-Workflow session (Delta 8 close + Delta 9)
+empirical_project: Cobrust v0.6.0 → v0.7.0 multi-agent run (2026-05-22 → 2026-05-29) + the 2026-05-29/30 dynamic-Workflow session (Delta 8 close + Delta 9) + the 2026-05-30 ADR-0080/ADR-0081 FastAPI-real impl run (Deltas 10-11)
 prior_snapshot: cobrust-f41-f43 (catalogue through F43; PR follow-up to F31-F40)
 status: methodology-evolution (NOT findings — these refine ADSD's own dispatch/audit discipline)
-related: [F41, F42, F43, F44, F64, F71, finding:f35-sibling-commit-msg-vs-diff-drift]
+related: [F41, F42, F43, F44, F64, F71, F72, finding:f35-sibling-commit-msg-vs-diff-drift, F36, F37, F61]
 ---
 
 # Methodology deltas since f41-f43
@@ -15,8 +15,10 @@ These are NOT failure-mode findings. They are **refinements to ADSD's own
 topology, dispatch, and audit discipline** — Deltas 1-7 and the first run of Delta 8
 were empirically forced during the Cobrust v0.6.0 → v0.7.0 multi-agent run; **Delta
 8's session-wide close (experiment → default) and Delta 9 (the Elegance Law) come
-from the follow-on 2026-05-29/30 dynamic-Workflow session.** A finding says "the
-system did X wrong"; a methodology delta says "the way we *run* the multi-agent
+from the follow-on 2026-05-29/30 dynamic-Workflow session; Deltas 10 (mutation-prove
+a tripwire) and 11 (slice an ADR-phase to the smallest independently-gated increment)
+come from the 2026-05-30 ADR-0080/ADR-0081 FastAPI-real impl run.** A finding says
+"the system did X wrong"; a methodology delta says "the way we *run* the multi-agent
 process should change."
 
 Each section: **what changed → why (the empirical trigger) → how to apply.**
@@ -122,6 +124,10 @@ discipline hardened in two steps:
 - Tier-1 must include the **fixture-name-vs-behavior gate** (a named fixture must
   exercise the shape its name promises, else rename / replace / `#[ignore]` with a
   gap-queue reason).
+- Tier-1 must include the **tripwire-mutation gate** (Delta 10): for any
+  negative / regression-tripwire test the change relies on, mutation-prove it —
+  does it go RED when the guarded property is violated? A green negative test is
+  unproven protection until a mutation makes it fail.
 - *Evidence (Cobrust):* the gap that motivated the rule was a 3-merge run shipped
   without audit; the v0.7.0 run dispatched a dedicated read-only retro-audit of the
   whole arc (`8a3e8bf..936f13c`) as a first-class wave member.
@@ -405,6 +411,93 @@ ex ante. Concretely, each ecosystem/backend surface decision should prefer:
 
 ---
 
+## Delta 10 — Mutation-prove a tripwire before relying on it (audit-discipline refinement)
+
+**What changed.** A negative test — or any "regression tripwire" guarding a
+property — can be **green for the wrong reason**: it can pass whether or not the bug
+it claims to catch is present. The audit-discipline refinement: **before trusting a
+tripwire, mutate the guarded code into its buggy form and confirm the test goes RED,
+then revert.** A tripwire's protective value is *unproven* until a mutation makes it
+fail. This is now a Tier-1 audit checklist item (Delta 3).
+
+**Why.** This sharpens F36/F37's "green-for-the-wrong-reason" family (a fixture /
+negative test passing without exercising what it claims) with the *verification
+technique*. The empirical case is exact and instructive: in ADR-0081 Phase-1b, the
+contract was that a `body.field` runtime read must be **registration-driven, not
+type-only** — a type-only dispatch gate would `serde`-cast a null pointer = UB. The
+DEV shipped a runtime "no-UB" negative test that asserts the process *survives*. The
+audit mutated the gate to the buggy type-only form and the runtime-survival test
+**still passed 3/3** — because today every `.cb`-constructed object is a null pointer
+*and* the accessor shim null-guards, so the would-be crash was masked. The
+runtime-survival test was **false comfort**: it could not distinguish the correct gate
+from the buggy one. The real fix was a disassembly / `nm`-based tripwire — the
+non-registered field read must emit **no accessor-symbol call** — and that tripwire
+was itself mutation-proven (RED under the type-only gate, GREEN on the real code).
+The lesson generalizes beyond UB: any test whose *passing* state is also the state a
+real regression would produce is not a guard.
+
+**How to apply.**
+- For any negative / tripwire test a change relies on, **mutate the guarded property
+  to its violated form and confirm RED**, then revert. If it stays green, the test
+  proves nothing — replace it with one that *can* fail (here: assert the *absence* of
+  a symbol call via disassembly / `nm`, not the survival of the process).
+- Prefer a tripwire that observes the **mechanism** (a symbol emitted, a code path
+  taken, an artifact shape) over one that observes a **downstream effect** that other
+  defenses (null-guards, fallbacks, coincidental platform behavior) can mask.
+- The auditor — not only the author — runs the mutation, because the author's context
+  is biased toward "my test works" (the Delta 3 independence rationale applies).
+- Tier-1 checklist line: *"for any negative/tripwire test the change relies on,
+  mutation-prove it: does it go RED when the guarded property is violated?"*
+- *Evidence (Cobrust):* ADR-0081 Phase-1b `body.field` dispatch-gate audit
+  (2026-05-30) — runtime no-UB test passed under a mutated type-only gate (false
+  comfort); the `nm`-based no-accessor-symbol tripwire was mutation-proven RED/GREEN
+  and shipped instead.
+
+---
+
+## Delta 11 — An ADR "phase" is a starting unit, not an atomic dispatch unit (dispatch-granularity refinement)
+
+**What changed.** An ADR **phase** is the *starting* decomposition, not the atomic
+unit of dispatch. The orchestrator **slices a phase recursively until each increment
+is** (a) **independently testable** — a compile-time `well_typed`/`ill_typed` corpus
+for a pure type-checker increment, a runtime E2E for a runtime increment; (b)
+**independently gated** — the FULL regression suite + CI green; and (c) **ordered so
+each unblocks the next**. Each increment ships as its own audited, CI-green commit.
+
+**Why.** A high-blast-radius type-system / object-model feature dispatched as one
+"phase" is both untestable-in-isolation (you can't write a tight pass/fail corpus for
+four entangled concerns at once) and too large for one audit to reason about
+soundly — the exact surfaces Delta 3 (independent audit) and the false-green findings
+(F44/F47) warn about. Slicing to the smallest independently-gated increment makes each
+step's proof obligation sharp and its blast radius auditable. It also turns a
+**discovered prerequisite into its own increment** rather than letting it bloat a
+sibling — when a TEST agent uncovers a hidden dependency, that dependency spins out as
+a new, separately-gated increment instead of being smuggled into the increment that
+found it.
+
+**How to apply.**
+- When an ADR-phase increment would be **untestable in isolation** OR **too
+  high-blast-radius for one audit**, slice it further before dispatching. The stop
+  condition is: *each piece has its own pass/fail proof (compile-time corpus or
+  runtime E2E) and its own green full-regression + CI run.*
+- Match the proof to the layer: a **pure type-checker** increment gets a
+  `well_typed`/`ill_typed` corpus; a **runtime** increment gets an E2E.
+- **A TEST agent that discovers a hidden prerequisite spins it into its own
+  increment** — do not let the prerequisite bloat the increment that surfaced it (it
+  unbalances that increment's audit and hides the prerequisite's own proof).
+- This composes with Delta 2 (the lead offloads each increment as its own dispatch)
+  and Delta 3 (each increment gets its own pre-merge independent audit).
+- *Evidence (Cobrust, 2026-05-30):* ADR-0080 "Phase-1" was sliced into **1a**
+  class-field-tracking (compile-time corpus) / **1b-i** class-name→`Adt` resolution
+  (compile-time) / **1b-ii** validation-engine (runtime E2E) / **1b-iii**
+  OpenAPI-emit (runtime E2E); ADR-0081 "Phase-1" into **1a** `json_response`
+  (independent runtime E2E) / **1b** `body.field`-read (the foundational
+  dispatch-gate). The Alias-vs-`Adt` non-unification — discovered by 1a's TEST
+  agent — became its **own** increment (**1b-i**) rather than bloating another. Each
+  shipped as its own audited, CI-green commit.
+
+---
+
 ## Cross-references
 
 - f41-f43 batch — `F43-spof-heavy-build-host.md` (CI-as-authoritative-gate, the
@@ -412,13 +505,24 @@ ex ante. Concretely, each ecosystem/backend surface decision should prefer:
   pre-flight/honest-signal disciplines).
 - This batch's findings — F44 (stale-green; parent of Deltas 6 and 7), F64
   (lockfile staging; parent of Delta 4), F71 (the wasm-typed-call ABI fuzzer
-  surfaced during the same session that closed Delta 8 and folded in Delta 9).
+  surfaced during the same session that closed Delta 8 and folded in Delta 9),
+  F72 (the killed-runner CI flake surfaced during the same 2026-05-30 run that
+  forced Deltas 10 and 11).
 - Delta 8 depth — `reference/workflow-orchestration-patterns.md` (the six reusable
   orchestration patterns: `robust()` retry-wrap, test-first-PAIR-as-script,
   audit-schema-verdict, one-workflow-per-working-tree, ≤4-parallel,
   CTO-integrates-after-verdict) and `SKILL.md` §"Part 2.5".
 - Delta 9 (Elegance Law) — CLAUDE.md §2.2 ("Drop from Python"), §2.5 (LLM-first
   design principle); the per-ADR footgun-ledger practice.
+- Delta 10 (mutation-prove a tripwire) — `reference/cobrust-f31-f39/F36-agent-self-disciplinary-rule-skip.md`
+  and `F37-numeric-anchor-degradation-high-churn.md` (the green-for-the-wrong-reason
+  family it sharpens), `F61-negative-test-probe-platform-divergent-input.md` (the
+  negative-test-validated-on-one-condition-only sibling); folds into the Delta 3
+  Tier-1 checklist as the tripwire-mutation gate.
+- Delta 11 (slice an ADR-phase to the smallest independently-gated increment) —
+  Delta 2 (offload each increment as its own dispatch) + Delta 3 (independent audit
+  per increment); the false-green findings F44 / F47 (an un-isolated increment hides
+  exactly this class of defect).
 - `reference/cobrust-f31-f39/F40-stream-watchdog-false-stall-signal.md` — the
   transient-agent-failure class behind Delta 8's `robust()` refinement.
 - Cobrust source: `cto_operations_runbook.md` (dispatch + audit + pre-commit SOPs),

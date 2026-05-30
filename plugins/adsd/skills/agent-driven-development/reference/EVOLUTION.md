@@ -1,6 +1,6 @@
 ---
 name: ADSD evolution / changelog
-description: The methodology's growth arc as a concise changelog — the doc a returning reader checks to see "what changed since I last read". One short paragraph per era (F1-F30 original 12-day distillation → F31-F40 → F41-F43 → F44-F71 + the 9 methodology deltas + dynamic-Workflow orchestration as the default dev mode + the Elegance Law), each with its Cobrust empirical anchor and a pointer to the batch's reference dir/README. Not a re-derivation of the methodology — read SKILL.md for that; read this to orient on what is new.
+description: The methodology's growth arc as a concise changelog — the doc a returning reader checks to see "what changed since I last read". One short paragraph per era (F1-F30 original 12-day distillation → F31-F40 → F41-F43 → F44-F72 + the 11 methodology deltas + dynamic-Workflow orchestration as the default dev mode + the Elegance Law + mutation-prove-a-tripwire + slice-to-smallest-gated-increment), each with its Cobrust empirical anchor and a pointer to the batch's reference dir/README. Not a re-derivation of the methodology — read SKILL.md for that; read this to orient on what is new.
 type: reference
 version: 1.1.0
 date: 2026-05-30
@@ -33,8 +33,8 @@ timeline
     F1-F30 : Original 12-day distillation : Cobrust N=1 (2026-04-30→05-12) + Studio N=2 : the distillation SNAPSHOT, now a floor
     F31-F40 : v0.3.0 sprint cadence : Phase F.3 → Phase I (2026-05-16→05-19) : cascade-discovery + agent-self-discipline-skip
     F41-F43 : Phase G/J sprints : source-leak + opsec + SPOF build host (2026-05-19/20)
-    F44-F71 : v0.6.0 → v0.7.0 run + 2026-05-29/30 session : stub/parity false-pass + cross-target + ecosystem-import + F71 wasm-ABI-fuzzer
-    9 deltas : process refinements : all-top-tier + dispatcher-custodian + post-author audit + dynamic-Workflow (now default) + Elegance Law
+    F44-F72 : v0.6.0 → v0.7.0 run + 2026-05-29/30 session + 2026-05-30 FastAPI-real run : stub/parity false-pass + cross-target + ecosystem-import + F71 wasm-ABI-fuzzer + F72 killed-runner-flake
+    11 deltas : process refinements : all-top-tier + dispatcher-custodian + post-author audit + dynamic-Workflow (now default) + Elegance Law + mutation-prove-a-tripwire + slice-to-smallest-gated-increment
 ```
 
 | Era | Catalogue range | Files / count (on disk) | Cobrust window | Where |
@@ -42,15 +42,15 @@ timeline
 | **Original distillation** | F1–F30 | `failure-modes-catalogue.md` (F1 family ×9 sub-forms + F2–F30) | N=1: 2026-04-30→05-12; Studio N=2: M0–M7 | `reference/failure-modes-catalogue.md` |
 | **F31–F40** | F31–F40 | 10 finding files + README | v0.3.0, Phase F.3→I, 2026-05-16→05-19 | `reference/cobrust-f31-f39/` |
 | **F41–F43** | F41–F43 | 3 finding files + README | Phase G/J, 2026-05-19/20 | `reference/cobrust-f41-f43/` |
-| **F44–F71** | F44–F71 (F45a sub-form; F52/F57 skipped) | 27 finding files + 2 pattern docs + `methodology-deltas.md` + README | v0.6.0→v0.7.0, 2026-05-22→05-29 + 2026-05-29/30 session | `reference/cobrust-f44-f70/` |
-| **Methodology deltas** | Deltas 1–9 | `methodology-deltas.md` (+ `reference/workflow-orchestration-patterns.md`) | v0.7.0 run + 2026-05-29/30 session | `reference/cobrust-f44-f70/methodology-deltas.md` |
+| **F44–F72** | F44–F72 (F45a sub-form; F52/F57 skipped) | 28 finding files + 2 pattern docs + `methodology-deltas.md` + README | v0.6.0→v0.7.0, 2026-05-22→05-29 + 2026-05-29/30 session + 2026-05-30 FastAPI-real run | `reference/cobrust-f44-f70/` |
+| **Methodology deltas** | Deltas 1–11 | `methodology-deltas.md` (+ `reference/workflow-orchestration-patterns.md`) | v0.7.0 run + 2026-05-29/30 session + 2026-05-30 FastAPI-real run | `reference/cobrust-f44-f70/methodology-deltas.md` |
 
-> The catalogue is **F1–F71** in total, with **F45a** as a systemic-scope sub-form
+> The catalogue is **F1–F72** in total, with **F45a** as a systemic-scope sub-form
 > and **F52 / F57 deliberately skipped** (gaps in the origin project's local
 > numbering — not missing clusters, nothing cross-references them). F1–F30 live in
 > the monolithic catalogue; F31+ live in per-era batch dirs, each finding
 > SHA-anchored to the Cobrust commit that forced it. (The `cobrust-f44-f70/` dir
-> name is kept stable for cross-references even though the batch now extends to F71.)
+> name is kept stable for cross-references even though the batch now extends to F72.)
 
 ---
 
@@ -109,13 +109,13 @@ retried silently for 8+ hours; resolution was to abandon the host and make **clo
 CI the single authoritative gate** (the parent lesson of methodology Delta 6).
 *Where:* `reference/cobrust-f41-f43/` (3 files + README).
 
-## Era 3 — v0.6.0 → v0.7.0 run + the 2026-05-29/30 session (F44–F71) + the 9 methodology deltas
+## Era 3 — v0.6.0 → v0.7.0 run + the 2026-05-29/30 session + the 2026-05-30 FastAPI-real run (F44–F72) + the 11 methodology deltas
 
 The largest batch and the proof that the distillation snapshot was a floor:
 Cobrust did **not** stop on 2026-05-12. It kept running well past the
 distillation window (its later product milestones — new ecosystem modules,
 additional compile targets — live in the separate Cobrust repo and are not
-re-measured here). That continued run forced **27** findings (F44–F71,
+re-measured here). That continued run forced **28** findings (F44–F72,
 with **F45a** a systemic-scope sub-form; **F52/F57** intentionally skipped),
 clustering into five families: **CI-as-authoritative-oracle hardening** (F44 stale-
 green / false-pass, F51 unlinted opt-in features, F59 external-service-gates-CI, F62
@@ -128,23 +128,29 @@ release discipline** (F46 not-installable-on-a-fresh-environment, F48 version-bu
 must-tag, F64 lockfile-staging, F65 committed-example-without-a-paired-smoke-test);
 **identity / opsec** (F49 fresh-workspace identity fallback leak, sibling of F42);
 and **cross-target enablement + non-deterministic-input** (F54, F55, F58, F60, F61,
-F63, F66, F67, F70, and **F71** — *wasm is a free ABI-correctness fuzzer*: a
+F63, F66, F67, F70, **F71** — *wasm is a free ABI-correctness fuzzer*: a
 codegen extern with a native-tolerated sloppy signature (`i64` length arg where the
 runtime used `usize` = `i32`-on-wasm32) traps on wasm32's strict typed-call check,
 so a wasm cross-smoke audits the whole `__cobrust_*` extern table for free; added by
-the 2026-05-29/30 session). Two distilled **pattern docs** sit above the findings
+the 2026-05-29/30 session — and **F72** — *a killed-runner CI flake (OOM/timeout/
+infra) looks like a code failure but isn't*: its signature is a **blank step
+conclusion + empty `--log-failed`** (distinct from F64's logged lockfile mismatch);
+two-command triage — exact-command local repro with `--locked` + `gh run rerun
+--failed` — separates infra noise from a code bug; added by the 2026-05-30
+FastAPI-real run). Two distilled **pattern docs** sit above the findings
 (`cross-compile-target-enablement-pattern.md`, `ecosystem-import-chain-pattern.md`),
-and a `methodology-deltas.md` records **9 refinements to ADSD's own process** (see
-next section). *Where:* `reference/cobrust-f44-f70/` (27 findings + 2 patterns +
+and a `methodology-deltas.md` records **11 refinements to ADSD's own process** (see
+next section). *Where:* `reference/cobrust-f44-f70/` (28 findings + 2 patterns +
 methodology-deltas + README; per-finding SHA anchors + slot-mapping table in the
 README).
 
-### The 9 methodology deltas (process, not failure modes)
+### The 11 methodology deltas (process, not failure modes)
 
 These say "change how we *run* the multi-agent process", not "the system did X
 wrong" — research-product co-evolution distilled from the v0.7.0 run (Deltas 1-7 +
-Delta 8's first run) and the follow-on 2026-05-29/30 dynamic-Workflow session
-(Delta 8's experiment → default close + Delta 9). Several hardened into the repo's
+Delta 8's first run), the follow-on 2026-05-29/30 dynamic-Workflow session
+(Delta 8's experiment → default close + Delta 9), and the 2026-05-30 ADR-0080/
+ADR-0081 FastAPI-real impl run (Deltas 10-11). Several hardened into the repo's
 own `docs/agent/conventions.md`:
 
 1. **All-top-tier sub-agents** — author *and* audit use the top model; the tier
@@ -200,6 +206,31 @@ own `docs/agent/conventions.md`:
    each surface decision avoids); each backend/ecosystem workflow's audit scores
    **`elegant + no-legacy-debt`**. *Where:*
    `reference/cobrust-f44-f70/methodology-deltas.md` §"Delta 9".
+10. **Mutation-prove a tripwire before relying on it (newest, audit discipline).** A
+   negative / regression-tripwire test can be **green for the wrong reason** — it
+   passes whether or not the bug it guards against is present. The audit-discipline
+   refinement: **mutate the guarded code into its buggy form and confirm the test
+   goes RED**, then revert; a tripwire's protective value is unproven until a mutation
+   makes it fail. Empirical (ADR-0081 Phase-1b): a runtime "no-UB" test on a
+   `body.field` dispatch-gate passed **3/3 even under the mutated buggy (type-only)
+   gate** — every `.cb` object is a null pointer today and the accessor shim
+   null-guards, so the would-be crash was masked; the real guard was an `nm`-based
+   tripwire (the non-registered read must emit no accessor-symbol call), itself
+   mutation-proven RED/GREEN. Sharpens F36/F37 with the *technique* and adds a
+   one-line Tier-1 audit-checklist item (Delta 3). *Where:*
+   `reference/cobrust-f44-f70/methodology-deltas.md` §"Delta 10".
+11. **An ADR "phase" is a starting unit, not an atomic dispatch unit (newest,
+   dispatch granularity).** Slice a high-blast-radius type-system / object-model phase
+   recursively until each increment is **independently testable** (a compile-time
+   `well_typed`/`ill_typed` corpus for a pure type-checker increment, a runtime E2E
+   for a runtime increment), **independently gated** (full regression + CI), and
+   ordered to unblock the next — each shipping as its own audited, CI-green commit. A
+   TEST agent that discovers a hidden prerequisite spins it into its own increment
+   rather than bloating a sibling. Empirical: ADR-0080 Phase-1 sliced into
+   1a/1b-i/1b-ii/1b-iii, ADR-0081 Phase-1 into 1a/1b, the Alias-vs-`Adt`
+   non-unification (found by 1a's TEST agent) becoming its own 1b-i. Composes with
+   Deltas 2 + 3. *Where:*
+   `reference/cobrust-f44-f70/methodology-deltas.md` §"Delta 11".
 
 ---
 
@@ -263,4 +294,4 @@ persona", §"Deep-source-read (the 8th audit dimension)".
 
 If you adopt ADSD, attribute Cobrust as origin. If you improve it, back-port the
 improvement here — add a new era paragraph + a batch dir, SHA-anchored. That is how
-this catalogue has grown from F1 to F71, and how it stays honest.
+this catalogue has grown from F1 to F72, and how it stays honest.

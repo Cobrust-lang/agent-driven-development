@@ -2590,15 +2590,17 @@ evidence:
 - `cobrust-f31-f39/` — F31-F40, Cobrust Phase F.3 → Phase I (2026-05-16/19).
 - `cobrust-f41-f43/` — F41-F43, Cobrust Phase G/J (2026-05-19/20): source-surface
   leakage + device-name redaction + SPOF heavy-build host.
-- `cobrust-f44-f70/` — F44-F71 (F45a sub-form; F52/F57 intentionally skipped) +
+- `cobrust-f44-f70/` — F44-F72 (F45a sub-form; F52/F57 intentionally skipped) +
   two pattern docs (`cross-compile-target-enablement-pattern.md`,
   `ecosystem-import-chain-pattern.md`) + `methodology-deltas.md`, Cobrust v0.6.0 →
   v0.7.0 (2026-05-22/29) plus the 2026-05-29/30 dynamic-Workflow session (F71 +
-  Delta 8 close + Delta 9): CI-as-oracle hardening, stub/parity false-pass family,
-  cross-target enablement (incl. F71 wasm-typed-call ABI fuzzer), ecosystem-import
-  chain, and 9 ADSD process deltas (incl. dynamic-Workflow orchestration as the
-  default dev mode + the Elegance Law). See `cobrust-f44-f70/README.md` and the
-  sibling `workflow-orchestration-patterns.md`.
+  Delta 8 close + Delta 9) plus the 2026-05-30 ADR-0080/ADR-0081 FastAPI-real impl
+  run (F72 + Deltas 10-11): CI-as-oracle hardening, stub/parity false-pass family,
+  cross-target enablement (incl. F71 wasm-typed-call ABI fuzzer + F72 killed-runner
+  CI flake), ecosystem-import chain, and 11 ADSD process deltas (incl.
+  dynamic-Workflow orchestration as the default dev mode + the Elegance Law +
+  mutation-prove-a-tripwire + slice-to-smallest-gated-increment). See
+  `cobrust-f44-f70/README.md` and the sibling `workflow-orchestration-patterns.md`.
 
 These batch slot numbers are Cobrust local IDs and may not align 1:1 with this
 file's F-numbering (e.g. f31-f39 re-mapped local IDs onto free upstream slots).

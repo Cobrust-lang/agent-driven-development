@@ -1,6 +1,6 @@
 ---
 name: agent-driven-development
-description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P8/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks). Provides 5-tier role topology (P10 CTO / P9 tech lead / P8 domain expert / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), dynamic-Workflow deterministic orchestration as the default dev mode for stable-shape work (fan-out → synthesis → impl → audit; six reusable patterns incl. robust() retry-wrap in reference/workflow-orchestration-patterns.md), snapshot-first documentation discipline, staged mocked-to-live progression guidance, 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), the Elegance Law (ecosystem/backend .cb surfaces are a clean footgun-dropping re-design, not a mechanical clone), F1–F71 failure-modes catalogue (original F1-F30 + Cobrust corroboration batches F31-F40 / F41-F43 / F44-F71 + 9 methodology deltas), AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md, the per-batch reference/cobrust-f31-f39 / -f41-f43 / -f44-f70 corroboration sets (incl. methodology-deltas.md + workflow-orchestration-patterns.md), and case-study/cobrust-multi-agent-experience.md on demand.
+description: ADSD methodology for managing multi-agent software projects where AI agents produce ≥70% of code. Use when starting such a project, planning P10/P9/P8/P7 sub-agent dispatch, running tactical or strategic project reviews, drafting ADR/finding/snapshot artifacts, designing pre-release multi-agent audit teams, or diagnosing multi-agent failure modes (snapshot sediment, post-compaction role-identity drift, silent miscompile, marketing overreach without benchmark cite, sub-agent KPI self-report fidelity gaps, attribution-policy scope leaks). Provides 5-tier role topology (P10 CTO / P9 tech lead / P8 domain expert / P7 senior eng / P0 atomic + external review), two-phase dispatch SOP (Phase 1 ADR spike → Phase 2 P9 impl), dynamic-Workflow deterministic orchestration as the default dev mode for stable-shape work (fan-out → synthesis → impl → audit; six reusable patterns incl. robust() retry-wrap in reference/workflow-orchestration-patterns.md), snapshot-first documentation discipline, staged mocked-to-live progression guidance, 8-dimension audit pattern (4 internal + 3 persona + deep-source-read), the Elegance Law (ecosystem/backend .cb surfaces are a clean footgun-dropping re-design, not a mechanical clone), F1–F72 failure-modes catalogue (original F1-F30 + Cobrust corroboration batches F31-F40 / F41-F43 / F44-F72 + 11 methodology deltas), AI velocity planning heuristic, and ADR/finding/snapshot/dispatch-prompt-{p7,p9}/handoff-cover-letter templates under templates/. Read SKILL.md first; pull reference/failure-modes-catalogue.md, the per-batch reference/cobrust-f31-f39 / -f41-f43 / -f44-f70 corroboration sets (incl. methodology-deltas.md + workflow-orchestration-patterns.md), and case-study/cobrust-multi-agent-experience.md on demand.
 ---
 
 # Agent-Driven Software Development (ADSD)
@@ -15,13 +15,16 @@ description: ADSD methodology for managing multi-agent software projects where A
 >
 > **Where it stands now** (the live arc): the origin project did not stop at the
 > distillation snapshot — it kept running well past it, and the failure-modes
-> catalogue grew with it, from the original F1-F30 to **F1-F71** across three
-> later corroboration batches (F31-F40 + F41-F43 + F44-F71; F45a sub-form;
-> F52/F57 intentional gaps), plus **9 methodology deltas**
+> catalogue grew with it, from the original F1-F30 to **F1-F72** across three
+> later corroboration batches (F31-F40 + F41-F43 + F44-F72; F45a sub-form;
+> F52/F57 intentional gaps), plus **11 methodology deltas**
 > (`reference/cobrust-f44-f70/methodology-deltas.md`). The most recent of those —
 > **dynamic-Workflow orchestration became the default Cobrust dev mode** (Delta 8
-> closed experiment → default across a ~11-workflow session), and the **Elegance
-> Law** (Delta 9) extended "Drop from Python" to the ecosystem surface. Read the
+> closed experiment → default across a ~11-workflow session), the **Elegance
+> Law** (Delta 9) extended "Drop from Python" to the ecosystem surface, and the
+> 2026-05-30 FastAPI-real impl run added **mutation-prove a tripwire** (Delta 10)
+> and **slice an ADR-phase to the smallest independently-gated increment**
+> (Delta 11). Read the
 > numbers in the snapshot blockquote above as a **floor**, not the current total.
 > (The origin project's later product milestones live in the separate Cobrust repo
 > and are not re-measured here.)
@@ -563,7 +566,7 @@ The two-phase dispatch SOP (Part 2) assumes a **lead agent who hand-manages
 each dispatch** — fires sub-agents, polls for completion, synthesizes reports,
 gates the audit, decides the merge. That worked for the entire distillation
 window. But the dispatch + audit refinements that hardened across the later
-corroboration batches (the 9 methodology deltas) are almost all patches for
+corroboration batches (the 11 methodology deltas) are almost all patches for
 failure surfaces the **juggling itself** creates:
 
 - stale snapshots while the lead's attention is on another stream (F1-Sediment)
@@ -1161,20 +1164,23 @@ Everything else is adaptable.
 - Part 6 Failure-modes catalogue (the original **F1-F30**, version 1.2.7):
   `reference/failure-modes-catalogue.md`
   - Per-era Cobrust corroboration batches (slot = local-ID, SHA-anchored) take
-    the catalogue to **F1-F71** (with F45a sub-form; F52/F57 intentional gaps):
+    the catalogue to **F1-F72** (with F45a sub-form; F52/F57 intentional gaps):
     - `reference/cobrust-f31-f39/` — **F31-F40** (10 findings, v0.3.0 run)
     - `reference/cobrust-f41-f43/` — **F41-F43** (3 findings, Phase G/J)
-    - `reference/cobrust-f44-f70/` — **F44-F71** (27 findings incl. F45a; F71 =
-      wasm-typed-call ABI fuzzer) + 2 cross-cutting pattern docs
-      (`cross-compile-target-enablement-pattern.md`,
+    - `reference/cobrust-f44-f70/` — **F44-F72** (28 findings incl. F45a; F71 =
+      wasm-typed-call ABI fuzzer, F72 = killed-runner CI flake) + 2 cross-cutting
+      pattern docs (`cross-compile-target-enablement-pattern.md`,
       `ecosystem-import-chain-pattern.md`) + **`methodology-deltas.md`** — the
-      **9 dispatch/audit refinements** from the v0.6.0 → v0.7.0 run + the
-      2026-05-29/30 dynamic-Workflow session (Delta 1 all-top-tier sub-agents ·
+      **11 dispatch/audit refinements** from the v0.6.0 → v0.7.0 run + the
+      2026-05-29/30 dynamic-Workflow session + the 2026-05-30 FastAPI-real impl run
+      (Delta 1 all-top-tier sub-agents ·
       Delta 2 dispatcher-as-context-custodian · Delta 3 mandatory post-author audit ·
       Delta 4 lockfile-staging · Delta 5 chain-generality verification · Delta 6
       CI-infra-hardening · Delta 7 honest-signal · Delta 8 dynamic-Workflow
       orchestration, *now the default dev mode* — with its socket-resilience
-      refinement, see Part 2.5 · Delta 9 the Elegance Law, see Part 4)
+      refinement, see Part 2.5 · Delta 9 the Elegance Law, see Part 4 · Delta 10
+      mutation-prove a tripwire · Delta 11 slice an ADR-phase to the smallest
+      independently-gated increment)
 - Dynamic-Workflow orchestration depth:
   `reference/workflow-orchestration-patterns.md` (the six reusable patterns)
 - Templates: `templates/*.md`
@@ -1207,11 +1213,13 @@ distilled from, and where failure modes F1-F30 were observed.
 **The live arc (what the origin project became after the snapshot)**: Cobrust
 did **not** stop on 2026-05-12. It kept running well past the distillation
 window, and that continued run is the empirical source for the **three
-corroboration batches** (F31-F40, F41-F43, F44-F71 — taking the catalogue to
-**F1-F71**, with the F45a sub-form and F52/F57 as intentional numbering gaps)
-and the **9 methodology deltas** (Delta 1 all-top-tier sub-agents → Delta 8
+corroboration batches** (F31-F40, F41-F43, F44-F72 — taking the catalogue to
+**F1-F72**, with the F45a sub-form and F52/F57 as intentional numbering gaps)
+and the **11 methodology deltas** (Delta 1 all-top-tier sub-agents → Delta 8
 dynamic-Workflow orchestration, promoted to the default dev mode across a
-~11-workflow 2026-05-29/30 session → Delta 9 the Elegance Law). Treat the
+~11-workflow 2026-05-29/30 session → Delta 9 the Elegance Law → Deltas 10-11
+mutation-prove-a-tripwire + slice-to-smallest-gated-increment, from the
+2026-05-30 FastAPI-real impl run). Treat the
 snapshot stats above as a **floor**: they describe only the original window, not
 the current total. (The origin project's later product milestones — new ecosystem
 modules, additional compile targets — live in the separate Cobrust repo and are
@@ -1225,7 +1233,7 @@ Specific Cobrust artifacts that inspired each Part:
 - Part 4 Stress-test farms: Conway-cobrust-toy + Cobrust-leetcode-farm
 - Part 5 Wedge: 10th strategic review (`reviews/2026-05-10-...md`)
 - Part 6 Failure catalogue: aggregated from 6+ findings; corroborated + extended
-  to F71 by the three `reference/cobrust-f31-f39 / -f41-f43 / -f44-f70` batches
+  to F72 by the three `reference/cobrust-f31-f39 / -f41-f43 / -f44-f70` batches
 
 If you adopt ADSD, attribute Cobrust as origin. If you improve it,
 back-port the improvement here.
